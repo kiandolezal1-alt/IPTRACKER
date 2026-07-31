@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production &amp; Commission Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#F5F6F8;
+    --navy-2:#FFFFFF;
+    --bg:#0A0A0D;
+    --card:#131318;
+    --card-2:#17171D;
+    --line:#24242C;
+    --text:#F2F3F5;
+    --muted:#8B8D98;
+    --gold:#F5B342;
+    --gold-soft:rgba(245,179,66,0.14);
+    --blue:#5B8DEF;
+    --blue-soft:rgba(91,141,239,0.14);
+    --green:#3DD68C;
+    --green-soft:rgba(61,214,140,0.14);
+    --amber:#F5B342;
+    --amber-soft:rgba(245,179,66,0.14);
+    --red:#F0685C;
+    --red-soft:rgba(240,104,92,0.14);
+    --purple:#A78BFA;
+    --purple-soft:rgba(167,139,250,0.14);
+    --teal:#2DD4BF;
+    --teal-soft:rgba(45,212,191,0.14);
+    --slate:#6B6E79;
+    --radius:16px;
+    --shadow: 0 1px 2px rgba(0,0,0,0.2), 0 10px 30px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  .app{
+    display:flex;
+    min-height:100vh;
+    max-width:1400px;
+    margin:0 auto;
+  }
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:#2A2B33;border-radius:10px;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:230px;
+    flex-shrink:0;
+    background:#000000;
+    border-right:1px solid var(--line);
+    color:#fff;
+    padding:26px 18px;
+    position:sticky;
+    top:0;
+    align-self:flex-start;
+    min-height:100vh;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .brand-mark{
+    width:34px;height:34px;border-radius:9px;
+    background:var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Sora',sans-serif;font-weight:800;color:#0A0A0D;
+    font-size:15px;
+    flex-shrink:0;
+  }
+  .brand-text{
+    font-family:'Sora',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.2px;
+  }
+  .brand-sub{
+    font-size:11px;
+    color:#B9C2D4;
+    margin:2px 0 26px 44px;
+    letter-spacing:0.3px;
+    text-transform:uppercase;
+  }
+  .agent-box{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:22px;
+  }
+  .agent-box label{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:#93A0B8;
+    margin-bottom:5px;
+  }
+  .agent-box input{
+    width:100%;
+    background:transparent;
+    border:none;
+    color:#fff;
+    font-family:'Sora',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    outline:none;
+    padding:0;
+  }
+  .agent-box input::placeholder{color:#7C87A0;}
+
+  nav.tabs{display:flex;flex-direction:column;gap:3px;}
+  nav.tabs button{
+    all:unset;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:9px;
+    color:#C6CEDD;
+    font-size:13.5px;
+    font-weight:500;
+    transition:background .15s, color .15s;
+  }
+  nav.tabs button svg{width:16px;height:16px;flex-shrink:0;opacity:.85;}
+  nav.tabs button:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  nav.tabs button.active{background:var(--gold);color:#0A0A0D;font-weight:700;}
+  nav.tabs button.active svg{opacity:1;}
+
+  .sidebar-footer{
+    margin-top:26px;
+    padding-top:16px;
+    border-top:1px solid rgba(255,255,255,0.09);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .ghost-btn{
+    all:unset;cursor:pointer;
+    font-size:12px;color:#93A0B8;
+    padding:6px 4px;
+    border-radius:6px;
+  }
+  .ghost-btn:hover{color:#fff;background:rgba(255,255,255,0.05);}
+
+  /* ---------- Main ---------- */
+  main{flex:1;min-width:0;padding:28px 32px 60px;}
+  .page-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+  .page-head h1{
+    font-family:'Sora',sans-serif;
+    font-size:22px;font-weight:700;margin:0 0 4px;color:var(--navy);
+  }
+  .page-head p{margin:0;color:var(--muted);font-size:13px;}
+  .today-chip{
+    background:var(--card);border:1px solid var(--line);
+    border-radius:20px;padding:7px 14px;font-size:12.5px;color:var(--muted);
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* ---------- Tiles ---------- */
+  .tiles{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-bottom:26px;
+  }
+  .tile{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px 18px;
+    box-shadow:var(--shadow);
+    position:relative;
+  }
+  .tile-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;}
+  .tile .label{
+    font-size:12.5px;
+    color:var(--muted);font-weight:500;
+    padding-top:6px;
+  }
+  .tile .icon-badge{
+    width:32px;height:32px;border-radius:9px;flex-shrink:0;
+    background:var(--accent-soft,var(--gold-soft));
+    display:flex;align-items:center;justify-content:center;
+    color:var(--accent,var(--gold));
+  }
+  .tile .icon-badge svg{width:16px;height:16px;}
+  .tile .value{
+    font-family:'Sora',sans-serif;
+    font-size:28px;font-weight:700;color:#fff;
+    letter-spacing:-0.5px;
+  }
+  .tile .sub{font-size:12px;color:var(--slate);margin-top:5px;}
+  .tile.accent-green{--accent:var(--green);--accent-soft:var(--green-soft);}
+  .tile.accent-amber{--accent:var(--amber);--accent-soft:var(--amber-soft);}
+  .tile.accent-red{--accent:var(--red);--accent-soft:var(--red-soft);}
+  .tile.accent-navy{--accent:var(--blue);--accent-soft:var(--blue-soft);}
+  .tile.accent-purple{--accent:var(--purple);--accent-soft:var(--purple-soft);}
+  .tile.accent-teal{--accent:var(--teal);--accent-soft:var(--teal-soft);}
+
+  /* ---------- Panels / cards ---------- */
+  .panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px 24px;
+    margin-bottom:20px;
+  }
+  .panel h2{
+    font-family:'Sora',sans-serif;font-size:15px;font-weight:700;
+    margin:0 0 4px;color:var(--navy);
+  }
+  .panel .desc{font-size:12.5px;color:var(--muted);margin:0 0 18px;}
+
+  .hidden{display:none !important;}
+
+  /* ---------- Forms ---------- */
+  .form-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+  }
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.span-2{grid-column:span 2;}
+  .field.span-4{grid-column:span 4;}
+  .field label{font-size:11.5px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:0.3px;}
+  .field .hint{font-size:11px;color:var(--slate);font-weight:400;text-transform:none;}
+  input,select,textarea{
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    padding:9px 11px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#1A1A20;
+    color:var(--text);
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+    width:100%;
+  }
+  input:focus,select:focus,textarea:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px var(--gold-soft);
+    background:#1F1F27;
+  }
+  textarea{resize:vertical;min-height:40px;}
+
+  .calc-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-top:16px;
+    padding:14px;
+    background:#1A1A20;
+    border:1px dashed var(--line);
+    border-radius:10px;
+  }
+  .calc-item .k{font-size:10.5px;text-transform:uppercase;color:var(--muted);letter-spacing:0.4px;margin-bottom:3px;}
+  .calc-item .v{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:var(--navy);}
+
+  .btn{
+    all:unset;cursor:pointer;
+    font-family:'Sora',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:10px 18px;
+    border-radius:9px;
+    text-align:center;
+    transition:opacity .15s, transform .1s;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:#fff;color:#0A0A0D;}
+  .btn-primary:hover{opacity:.9;}
+  .btn-gold{background:var(--gold);color:#0A0A0D;}
+  .btn-gold:hover{opacity:.9;}
+  .btn-outline{background:transparent;color:#fff;border:1px solid var(--line) !important;}
+  .btn-outline:hover{background:#1A1A20;}
+  .btn-danger-text{background:transparent;color:var(--red);font-size:12px;padding:6px 10px;}
+  .btn-danger-text:hover{background:var(--red-soft);}
+  .btn-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+
+  /* ---------- Table ---------- */
+  .table-toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .table-toolbar .filters{display:flex;gap:8px;flex-wrap:wrap;}
+  .table-toolbar select, .table-toolbar input{width:auto;min-width:130px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:0.4px;
+    color:var(--muted);font-weight:600;padding:0 10px 10px;border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:hover{background:#191920;}
+  .carrier-tag{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .num{font-family:'IBM Plex Mono',monospace;}
+  .status-pill{
+    display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
+    text-transform:uppercase;letter-spacing:0.3px;
+  }
+  .status-Submitted{background:#22232B;color:var(--muted);}
+  .status-Pending{background:var(--amber-soft);color:var(--amber);}
+  .status-Issued-Paid{background:var(--green-soft);color:var(--green);}
+  .status-Not-Taken{background:#22232B;color:var(--slate);}
+  .status-Lapsed-Chargeback{background:var(--red-soft);color:var(--red);}
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{
+    all:unset;cursor:pointer;width:26px;height:26px;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;color:var(--slate);
+  }
+  .icon-btn:hover{background:#22232B;color:#fff;}
+  .icon-btn.del:hover{background:var(--red-soft);color:var(--red);}
+  .empty-state{padding:40px 20px;text-align:center;color:var(--muted);}
+  .empty-state .big{font-size:32px;margin-bottom:8px;}
+
+  /* ---------- Carriers grid ---------- */
+  .carrier-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .carrier-card{
+    border:1px solid var(--line);border-radius:12px;padding:16px;background:#1A1A20;
+    position:relative;
+  }
+  .carrier-card .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .carrier-card .name{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--navy);display:flex;align-items:center;gap:8px;}
+  .carrier-stats{display:flex;gap:16px;margin-top:8px;}
+  .carrier-stats div{font-size:11px;color:var(--muted);}
+  .carrier-stats span{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--navy);font-weight:600;margin-top:2px;}
+  .product-list{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;}
+  .product-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;background:rgba(255,255,255,0.03);border-radius:7px;padding:6px 9px;}
+  .product-row .pname{font-weight:600;color:var(--navy);}
+  .product-row .prates{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  .product-row .icon-btn{width:20px;height:20px;}
+
+  .backend-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;}
+  .backend-toggle input{width:15px;height:15px;padding:0;}
+
+  @media (max-width:980px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;min-height:auto;position:relative;}
+    nav.tabs{flex-direction:row;flex-wrap:wrap;}
+    .tiles{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:repeat(2,1fr);}
+    .calc-strip{grid-template-columns:repeat(2,1fr);}
+    .carrier-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .tiles{grid-template-columns:1fr;}
+    main{padding:20px 14px 40px;}
+  }
+</style>
+</head>
+<body>
+<div id="authOverlay" class="hidden" style="position:fixed;inset:0;background:rgba(10,10,13,0.94);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;">
+  <div style="width:100%;max-width:380px;background:#131318;border:1px solid #24242C;border-radius:16px;padding:28px 26px;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <div style="width:34px;height:34px;border-radius:9px;background:#F5B342;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;font-weight:800;color:#0A0A0D;font-size:15px;">$</div>
+      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:#fff;">Production Tracker</div>
+    </div>
+    <p style="color:#8B8D98;font-size:12.5px;margin:4px 0 20px;">Sign in to sync your data across every device.</p>
+
+    <div id="authModeLogin">
+      <div class="field" style="margin-bottom:12px;">
+        <label>Email</label>
+        <input id="auth_login_email" type="email" placeholder="you@email.com" autocomplete="username">
+      </div>
+      <div class="field" style="margin-bottom:6px;">
+        <label>Password</label>
+        <input id="auth_login_pass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="authLoginError" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+      <button class="btn btn-gold" id="authLoginBtn" style="width:100%;">Log in</button>
+      <p style="text-align:center;font-size:12.5px;color:#8B8D98;margin-top:16px;">
+        No account yet? <a href="#" id="showSignupLink" style="color:#F5B342;text-decoration:none;">Create one</a>
+      </p>
+    </div>
+
+    <div id="authModeSignup" class="hidden">
+      <div class="field" style="margin-bottom:12px;">
+        <label>Email</label>
+        <input id="auth_signup_email" type="email" placeholder="you@email.com" autocomplete="username">
+      </div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Password <span class="hint">at least 8 characters</span></label>
+        <input id="auth_signup_pass" type="password" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="field" style="margin-bottom:6px;">
+        <label>Confirm password</label>
+        <input id="auth_signup_pass2" type="password" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div id="authSignupError" style="color:var(--red);font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+      <button class="btn btn-gold" id="authSignupBtn" style="width:100%;">Create account</button>
+      <p style="text-align:center;font-size:12.5px;color:#8B8D98;margin-top:16px;">
+        Already have an account? <a href="#" id="showLoginLink" style="color:#F5B342;text-decoration:none;">Log in</a>
+      </p>
+    </div>
+
+    <div id="authNotConfigured" class="hidden" style="text-align:center;color:#8B8D98;font-size:12.5px;line-height:1.6;">
+      Accounts require Cloud Sync to be set up first (Google Sheet backend). Once that's configured, this screen will let you sign up and log in.
+      <div class="btn-row" style="justify-content:center;margin-top:16px;">
+        <button class="btn btn-outline" id="authContinueLocalBtn">Continue without an account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">$</div>
+      <div class="brand-text">Production Tracker</div>
+    </div>
+    <div class="brand-sub">Mortgage Protection</div>
+
+    <div class="agent-box">
+      <label>Agent</label>
+      <input id="agentName" type="text" placeholder="Your name">
+    </div>
+
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </button>
+      <button class="tab-btn" data-tab="logsale">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Log a Sale
+      </button>
+      <button class="tab-btn" data-tab="saleslog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        Sales Log
+      </button>
+      <button class="tab-btn" data-tab="carriers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg>
+        Carriers
+      </button>
+      <button class="tab-btn" data-tab="data">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        Data
+      </button>
+      <button class="tab-btn" data-tab="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <div class="agent-box" id="acctStatusBox" style="margin-bottom:14px;">
+      <label>Account</label>
+      <div id="acctStatusText" style="font-family:'Sora',sans-serif;font-weight:600;font-size:12.5px;color:#B9C2D4;">Local only</div>
+    </div>
+
+    <div class="agent-box" id="autosaveStatus" style="margin-bottom:14px;">
+      <label>Autosave</label>
+      <div id="autosaveText" style="font-family:'Sora',sans-serif;font-weight:600;font-size:12.5px;color:#3DD68C;">● Saved</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="ghost-btn" id="backupNowBtn">⬇ Backup now (.json)</button>
+    </div>
+  </aside>
+
+  <main>
+
+    <div id="storageWarningBanner" class="hidden" style="background:var(--red-soft);border:1px solid var(--red);color:var(--red);border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.5;">
+      <strong>⚠ This browser isn't saving data on this page.</strong>
+      Nothing you enter right now will be kept if you leave or reload. This can happen inside embedded pages (like a Google Sites embed) when the browser blocks storage for embedded content.
+      Open this tracker in its own tab/URL instead of the embed to make sure your data saves — or export a backup constantly as you go.
+    </div>
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="tab-dashboard" class="tab-content">
+      <div class="page-head">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Your production and commission at a glance.</p>
+        </div>
+        <div class="today-chip" id="todayChip"></div>
+      </div>
+
+      <div class="tiles">
+        <div class="tile accent-navy">
+          <div class="tile-head">
+            <div class="label">Annualized Premium<br>Submitted</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          </div>
+          <div class="value" id="tileSubmittedAP">$0</div>
+          <div class="sub" id="tileSubmittedCount">0 applications</div>
+        </div>
+        <div class="tile accent-green">
+          <div class="tile-head">
+            <div class="label">Issued &amp; Paid</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+          </div>
+          <div class="value" id="tileIssuedCount">0</div>
+          <div class="sub" id="tileIssuedAP">$0 in AP</div>
+        </div>
+        <div class="tile" style="--accent:var(--gold);--accent-soft:var(--gold-soft);">
+          <div class="tile-head">
+            <div class="label">Advance Paid Out</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.4 1.3-2.5 3-2.5s3 1.1 3 2.3c0 3-6 1.4-6 4.4 0 1.3 1.3 2.3 3 2.3s3-1 3-2.3"/></svg></div>
+          </div>
+          <div class="value" id="tileAdvance">$0</div>
+          <div class="sub">Paid on issue</div>
+        </div>
+        <div class="tile accent-purple">
+          <div class="tile-head">
+            <div class="label">Backend Pending</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg></div>
+          </div>
+          <div class="value" id="tileBackendPending">$0</div>
+          <div class="sub" id="tileBackendPendingCount">0 policies still earning out</div>
+        </div>
+        <div class="tile accent-teal">
+          <div class="tile-head">
+            <div class="label">Backend Received</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M21 7v6M21 7h-6"/></svg></div>
+          </div>
+          <div class="value" id="tileBackendReceived">$0</div>
+          <div class="sub">Collected after advance period</div>
+        </div>
+        <div class="tile accent-red">
+          <div class="tile-head">
+            <div class="label">Lapsed / Chargeback<br>Risk</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9L1.8 18a1.8 1.8 0 001.5 2.7h17.4a1.8 1.8 0 001.5-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"/><path d="M12 9v4M12 16.5v.01"/></svg></div>
+          </div>
+          <div class="value" id="tileLapsed">$0</div>
+          <div class="sub" id="tileLapsedCount">0 policies</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>This month</h2>
+        <p class="desc" id="monthLabel">—</p>
+        <div class="calc-strip" style="margin-top:0;">
+          <div class="calc-item"><div class="k">AP Submitted</div><div class="v" id="mtdAP">$0</div></div>
+          <div class="calc-item"><div class="k">Applications</div><div class="v" id="mtdCount">0</div></div>
+          <div class="calc-item"><div class="k">Total Commission Earned</div><div class="v" id="mtdComm">$0</div></div>
+          <div class="calc-item"><div class="k">Avg. Comp Rate</div><div class="v" id="mtdAvgComp">0%</div></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Recent activity</h2>
+        <p class="desc">Your last 5 logged sales.</p>
+        <div id="recentList"></div>
+      </div>
+    </section>
+
+    <!-- ============ LOG A SALE ============ -->
+    <section id="tab-logsale" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Log a Sale</h1>
+          <p>Enter the application. Comp, advance, and backend calculate automatically.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="form-grid">
+          <div class="field">
+            <label>Client name</label>
+            <input id="f_client" type="text" placeholder="Jane Smith">
+          </div>
+          <div class="field">
+            <label>Date submitted</label>
+            <input id="f_date" type="date">
+          </div>
+          <div class="field">
+            <label>Effective date</label>
+            <input id="f_effectiveDate" type="date">
+          </div>
+          <div class="field span-2">
+            <label>Carrier <span class="hint">type to search, or type a new name to add one</span></label>
+            <input id="f_carrier_text" type="text" list="carrierDatalist" placeholder="Start typing a carrier...">
+            <datalist id="carrierDatalist"></datalist>
+          </div>
+          <div class="field span-2">
+            <label>Product <span class="hint">optional — picks up that product's own rates</span></label>
+            <input id="f_product_text" type="text" list="productDatalist" placeholder="e.g. Term Life, Whole Life...">
+            <datalist id="productDatalist"></datalist>
+          </div>
+
+          <div class="field">
+            <label>Premium type</label>
+            <select id="f_premType">
+              <option value="monthly">Monthly</option>
+              <option value="annual">Annual</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Premium amount ($)</label>
+            <input id="f_premium" type="number" min="0" step="0.01" placeholder="120.00">
+          </div>
+          <div class="field">
+            <label>Comp rate (%) <span class="hint">auto-fills from carrier/product</span></label>
+            <input id="f_comp" type="number" min="0" max="200" step="0.1" placeholder="80">
+          </div>
+          <div class="field">
+            <label>Advance rate (%) <span class="hint">auto-fills from carrier/product</span></label>
+            <input id="f_advance" type="number" min="0" max="100" step="0.1" placeholder="75">
+          </div>
+          <div class="field">
+            <label>Advance cap ($) <span class="hint">optional — max $ advanced</span></label>
+            <input id="f_advanceCap" type="number" min="0" step="1" placeholder="No cap">
+          </div>
+
+          <div class="field">
+            <label>Status</label>
+            <select id="f_status">
+              <option>Submitted</option>
+              <option>Pending</option>
+              <option>Issued & Paid</option>
+              <option>Not Taken</option>
+              <option>Lapsed / Chargeback</option>
+            </select>
+          </div>
+          <div class="field backend-toggle" style="margin-top:22px;">
+            <input type="checkbox" id="f_backendReceived">
+            <label style="text-transform:none;font-weight:500;font-size:13px;">Backend already received</label>
+          </div>
+          <div class="field span-2">
+            <label>Notes <span class="hint">optional</span></label>
+            <input id="f_notes" type="text" placeholder="Face amount, product, referral, etc.">
+          </div>
+        </div>
+
+        <div class="calc-strip">
+          <div class="calc-item"><div class="k">Annual Premium</div><div class="v" id="calcAP">$0.00</div></div>
+          <div class="calc-item"><div class="k">Total Commission</div><div class="v" id="calcComm">$0.00</div></div>
+          <div class="calc-item"><div class="k">Advance (paid now)</div><div class="v" id="calcAdv">$0.00</div><div class="sub" id="calcCapNote" style="margin-top:2px;"></div></div>
+          <div class="calc-item"><div class="k">Backend (mo. 10–12)</div><div class="v" id="calcBack">$0.00</div></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-outline" id="resetFormBtn">Clear</button>
+          <button class="btn btn-gold" id="submitSaleBtn">Save sale</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SALES LOG ============ -->
+    <section id="tab-saleslog" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Sales Log</h1>
+          <p>Every application you've submitted.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="table-toolbar">
+          <input id="searchClient" type="text" placeholder="Search client...">
+          <div class="filters">
+            <select id="filterCarrier"><option value="">All carriers</option></select>
+            <select id="filterStatus">
+              <option value="">All statuses</option>
+              <option>Submitted</option>
+              <option>Pending</option>
+              <option>Issued & Paid</option>
+              <option>Not Taken</option>
+              <option>Lapsed / Chargeback</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Effective</th>
+              <th>Client</th>
+              <th>Carrier</th>
+              <th>Product</th>
+              <th>AP</th>
+              <th>Comp %</th>
+              <th>Advance %</th>
+              <th>Advance $</th>
+              <th>Backend $</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody"></tbody>
+        </table>
+        </div>
+        <div id="salesEmptyState" class="empty-state hidden">
+          <div class="big">📋</div>
+          <div>No sales logged yet. Head to <strong>Log a Sale</strong> to add your first one.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CARRIERS ============ -->
+    <section id="tab-carriers" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Carriers</h1>
+          <p>Set default comp and advance rates, then add specific products underneath — rates often differ by product.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Add a carrier</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Carrier name</label>
+            <input id="c_name" type="text" placeholder="e.g. Mutual of Omaha">
+          </div>
+          <div class="field">
+            <label>Default comp rate (%)</label>
+            <input id="c_comp" type="number" min="0" max="200" step="0.1" placeholder="80">
+          </div>
+          <div class="field">
+            <label>Default advance rate (%)</label>
+            <input id="c_advance" type="number" min="0" max="100" step="0.1" placeholder="75">
+          </div>
+          <div class="field">
+            <label>Default advance cap ($) <span class="hint">optional</span></label>
+            <input id="c_cap" type="number" min="0" step="1" placeholder="No cap">
+          </div>
+          <div class="field">
+            <label>Backend release <span class="hint">months</span></label>
+            <input id="c_months" type="number" min="0" step="1" placeholder="9">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="addCarrierBtn">Add carrier</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Add a product</h2>
+        <p class="desc">Products inherit their carrier's rates unless you override them here — useful since term life, whole life, final expense, etc. often pay differently.</p>
+        <div class="form-grid">
+          <div class="field span-2">
+            <label>Carrier</label>
+            <select id="p_carrier"></select>
+          </div>
+          <div class="field span-2">
+            <label>Product name</label>
+            <input id="p_name" type="text" placeholder="e.g. 20-Year Term">
+          </div>
+          <div class="field">
+            <label>Comp rate (%) <span class="hint">optional override</span></label>
+            <input id="p_comp" type="number" min="0" max="200" step="0.1" placeholder="uses carrier default">
+          </div>
+          <div class="field">
+            <label>Advance rate (%) <span class="hint">optional override</span></label>
+            <input id="p_advance" type="number" min="0" max="100" step="0.1" placeholder="uses carrier default">
+          </div>
+          <div class="field">
+            <label>Advance cap ($) <span class="hint">optional override</span></label>
+            <input id="p_cap" type="number" min="0" step="1" placeholder="uses carrier default">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="addProductBtn">Add product</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Your carriers</h2>
+        <div class="carrier-grid" id="carrierGrid"></div>
+        <div id="carrierEmptyState" class="empty-state hidden">
+          <div class="big">🏢</div>
+          <div>No carriers yet. Add one above to start logging sales.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DATA ============ -->
+    <section id="tab-data" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Data</h1>
+          <p>Manage where your data lives and how it's backed up.</p>
+        </div>
+      </div>
+
+      <div class="panel" id="cloudSyncPanel">
+        <h2>☁ Cloud Sync</h2>
+        <p class="desc" id="cloudSyncDesc">Checking configuration...</p>
+        <div class="calc-strip" style="margin-top:0;">
+          <div class="calc-item"><div class="k">Status</div><div class="v" id="cloudSyncStatus" style="font-size:14px;">—</div></div>
+        </div>
+        <div class="btn-row" style="justify-content:flex-start;">
+          <button class="btn btn-outline" id="syncNowBtn">🔄 Sync now</button>
+          <button class="btn btn-outline" id="testBackendBtn">🔧 Test backend version</button>
+        </div>
+        <details style="margin-top:16px;">
+          <summary style="cursor:pointer;color:var(--muted);font-size:12.5px;">Not set up yet? Show setup instructions + script</summary>
+          <div style="margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.7;">
+            1. Go to sheets.google.com → create a blank spreadsheet.<br>
+            2. Extensions → Apps Script → delete the default code, paste the script below.<br>
+            3. Deploy → New deployment → Web app → Execute as <strong>Me</strong>, Access <strong>Anyone</strong> → Deploy → authorize it.<br>
+            4. Copy the Web app URL (ends in <code>/exec</code>).<br>
+            5. Paste that URL into the <code>SHEET_API_URL</code> constant near the top of this file's &lt;script&gt; tag, replacing the empty quotes. Then re-paste the whole file into your Google Sites embed and republish.<br>
+            6. This version supports accounts (email + password) — three tabs (Users, Sessions, UserData) are created automatically on the sheet. If you're upgrading from an older single-blob version, redeploy via <strong>Deploy → Manage deployments → edit → New version</strong> to keep the same URL, then export/import your old backup after creating your account.
+          </div>
+          <textarea readonly style="margin-top:10px;height:260px;font-family:'IBM Plex Mono',monospace;font-size:11px;" onclick="this.select()">// ====== CONFIG ======
+var USERS_SHEET = "Users";        // email | passwordHash | createdAt
+var SESSIONS_SHEET = "Sessions";  // token | email | createdAt
+var DATA_SHEET = "UserData";      // email | jsonBlob | lastUpdated
+
+function doGet(e) {
+  try {
+    var action = e.parameter.action;
+    if (action === "getData") {
+      var email = emailForToken_(e.parameter.token);
+      if (!email) return json_({ok:false, error:"invalid_session"});
+      var blob = getUserDataBlob_(email);
+      return json_({ok:true, data: JSON.parse(blob || "{}"), email: email});
+    }
+    return json_({ok:false, error:"unknown_action"});
+  } catch (err) {
+    return json_({ok:false, error:String(err)});
+  }
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var body = JSON.parse(e.postData.contents);
+    var action = body.action;
+
+    if (action === "signup") {
+      var email = normalizeEmail_(body.email);
+      if (!email || !body.hash) return json_({ok:false, error:"missing_fields"});
+      if (findUserRow_(email) > -1) return json_({ok:false, error:"email_taken"});
+      var users = getSheet_(USERS_SHEET);
+      users.appendRow([email, body.hash, new Date()]);
+      var dataSheet = getSheet_(DATA_SHEET);
+      dataSheet.appendRow([email, "{}", new Date()]);
+      var token = createSession_(email);
+      return json_({ok:true, token: token, email: email});
+    }
+
+    if (action === "login") {
+      var email = normalizeEmail_(body.email);
+      var row = findUserRow_(email);
+      if (row === -1) return json_({ok:false, error:"invalid_credentials"});
+      var users = getSheet_(USERS_SHEET);
+      var storedHash = users.getRange(row, 2).getValue();
+      if (storedHash !== body.hash) return json_({ok:false, error:"invalid_credentials"});
+      var token = createSession_(email);
+      return json_({ok:true, token: token, email: email});
+    }
+
+    if (action === "logout") {
+      var row = findSessionRow_(body.token);
+      if (row > -1) getSheet_(SESSIONS_SHEET).deleteRow(row);
+      return json_({ok:true});
+    }
+
+    if (action === "saveData") {
+      var email = emailForToken_(body.token);
+      if (!email) return json_({ok:false, error:"invalid_session"});
+      setUserDataBlob_(email, JSON.stringify(body.data));
+      return json_({ok:true});
+    }
+
+    if (action === "clearData") {
+      var email = emailForToken_(body.token);
+      if (!email) return json_({ok:false, error:"invalid_session"});
+      setUserDataBlob_(email, "{}");
+      return json_({ok:true});
+    }
+
+    if (action === "changePassword") {
+      var email = emailForToken_(body.token);
+      if (!email) return json_({ok:false, error:"invalid_session"});
+      var row = findUserRow_(email);
+      getSheet_(USERS_SHEET).getRange(row, 2).setValue(body.newHash);
+      return json_({ok:true});
+    }
+
+    return json_({ok:false, error:"unknown_action"});
+  } catch (err) {
+    return json_({ok:false, error:String(err)});
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+function normalizeEmail_(email) {
+  return (email || "").toString().trim().toLowerCase();
+}
+function getSheet_(name) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) sheet = ss.insertSheet(name);
+  return sheet;
+}
+function findUserRow_(email) {
+  var values = getSheet_(USERS_SHEET).getDataRange().getValues();
+  for (var i = 0; i < values.length; i++) {
+    if (normalizeEmail_(values[i][0]) === email) return i + 1;
+  }
+  return -1;
+}
+function findSessionRow_(token) {
+  var values = getSheet_(SESSIONS_SHEET).getDataRange().getValues();
+  for (var i = 0; i < values.length; i++) {
+    if (values[i][0] === token) return i + 1;
+  }
+  return -1;
+}
+function emailForToken_(token) {
+  if (!token) return null;
+  var row = findSessionRow_(token);
+  if (row === -1) return null;
+  return getSheet_(SESSIONS_SHEET).getRange(row, 2).getValue();
+}
+function createSession_(email) {
+  var token = Utilities.getUuid();
+  getSheet_(SESSIONS_SHEET).appendRow([token, email, new Date()]);
+  return token;
+}
+function findDataRow_(email) {
+  var values = getSheet_(DATA_SHEET).getDataRange().getValues();
+  for (var i = 0; i < values.length; i++) {
+    if (normalizeEmail_(values[i][0]) === email) return i + 1;
+  }
+  return -1;
+}
+function getUserDataBlob_(email) {
+  var row = findDataRow_(email);
+  if (row === -1) return "{}";
+  return getSheet_(DATA_SHEET).getRange(row, 2).getValue();
+}
+function setUserDataBlob_(email, json) {
+  var row = findDataRow_(email);
+  var dataSheet = getSheet_(DATA_SHEET);
+  if (row === -1) {
+    dataSheet.appendRow([email, json, new Date()]);
+  } else {
+    dataSheet.getRange(row, 2).setValue(json);
+    dataSheet.getRange(row, 3).setValue(new Date());
+  }
+}</textarea>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h2>Export</h2>
+        <p class="desc">Download a backup, or a CSV to open in a spreadsheet.</p>
+        <div class="btn-row" style="justify-content:flex-start;">
+          <button class="btn btn-outline" id="exportJsonBtn">Download backup (.json)</button>
+          <button class="btn btn-outline" id="exportCsvBtn">Download CSV</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Import</h2>
+        <p class="desc">Restore from a previously downloaded backup file. This replaces current data.</p>
+        <input type="file" id="importFile" accept="application/json">
+      </div>
+
+      <div class="panel">
+        <h2>Import sales from CSV</h2>
+        <p class="desc">
+          Adds sales without replacing anything. Each row is matched to an existing carrier and product by name
+          (case-insensitive) — if a match is found, that product's saved comp/advance/cap rates are used automatically.
+          Unmatched carriers or products are created for you.
+        </p>
+        <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:12px;">
+          <input type="file" id="importCsvFile" accept=".csv,text/csv">
+          <button class="btn btn-gold" id="importCsvBtn">Import CSV</button>
+        </div>
+        <div id="csvImportResult" style="font-size:12.5px;min-height:16px;"></div>
+        <details style="margin-top:12px;">
+          <summary style="cursor:pointer;color:var(--muted);font-size:12.5px;">Show accepted column headers</summary>
+          <p class="desc" style="margin-top:8px;line-height:1.7;">
+            Recognized headers (case-insensitive, order doesn't matter): <code>Date</code>, <code>Effective Date</code>,
+            <code>Client</code>, <code>Carrier</code>, <code>Product</code>, <code>Premium Type</code> (Monthly/Annual),
+            <code>Premium</code>, <code>Comp %</code>, <code>Advance %</code>, <code>Advance Cap</code>, <code>Status</code>,
+            <code>Backend Received</code> (Yes/No), <code>Notes</code>. Only <strong>Client</strong>, <strong>Carrier</strong>,
+            and <strong>Premium</strong> are required — everything else is optional and falls back to carrier/product defaults.
+            This matches the same format the "Download CSV" button above produces, so round-tripping just works.
+          </p>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h2>Storage note</h2>
+        <p class="desc" style="margin-bottom:0;">Without cloud sync configured above, this tracker only saves to this specific browser on this device — it will not carry over to your phone or another browser, and some embedded contexts (like Google Sites) may not reliably save at all. Set up Cloud Sync above for true cross-device access, and export a backup occasionally either way.</p>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section id="tab-settings" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Settings</h1>
+          <p>Account and data controls.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Account</h2>
+        <p class="desc" id="settingsAcctDesc">You're not signed in — this device is in local-only mode.</p>
+        <div class="btn-row" style="justify-content:flex-start;" id="settingsAuthButtons">
+          <!-- filled in by JS: Log out (if signed in) or Sign in (if local-only + cloud configured) -->
+        </div>
+      </div>
+
+      <div class="panel" id="changePasswordPanel">
+        <h2>Change password</h2>
+        <div class="form-grid">
+          <div class="field span-2">
+            <label>Current password</label>
+            <input id="cp_current" type="password" placeholder="••••••••">
+          </div>
+          <div class="field span-2">
+            <label>New password <span class="hint">at least 8 characters</span></label>
+            <input id="cp_new" type="password" placeholder="••••••••">
+          </div>
+        </div>
+        <div id="changePasswordMsg" style="font-size:12px;min-height:16px;margin-top:8px;"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline" id="changePasswordBtn">Update password</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 style="color:var(--red);">Danger zone</h2>
+        <p class="desc">This permanently deletes every carrier and sale on your account (or this device, if local-only). This can't be undone — download a backup first.</p>
+        <div class="btn-row" style="justify-content:flex-start;">
+          <button class="btn btn-outline" id="clearAllBtnSettings" style="border-color:var(--red) !important;color:var(--red);">Clear all data</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     CLOUD SYNC CONFIG
+     Paste your Google Apps Script Web App URL between the quotes
+     below (see Data tab → Cloud Sync for setup steps). Leave as ""
+     to run in local-only mode (no cross-device sync).
+     ============================================================ */
+  const SHEET_API_URL = "https://script.google.com/macros/s/AKfycby_LorHvJitDscwxv74POluOjgX2kUOeuCDpS1zR23wv7kF8lL1M8cZfgEEcJc2CWkN/exec";
+
+  const STORAGE_KEY = "ipt_data_v1";
+  const AUTH_TOKEN_KEY = "ipt_auth_token_v1";
+  const AUTH_EMAIL_KEY = "ipt_auth_email_v1";
+  const PEPPER = "iptv1-static-pepper"; // fixed string mixed into every password hash for this app
+  const PALETTE = ["#C89B3C","#1F8A5F","#2C5AA0","#8A57C4","#C1483A","#0E8388","#B5762A","#5B7F9E"];
+  const cloudConfigured = !!SHEET_API_URL && SHEET_API_URL.indexOf("http") === 0;
+  let lastCloudSyncOk = null;
+  let pushPromise = null;
+  let pushQueued = false;
+  let currentAuth = { token: null, email: null };
+
+  let state = {
+    agentName:"",
+    carriers:[],
+    sales:[]
+  };
+
+  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function fmtMoney(n){
+    n = isFinite(n) ? n : 0;
+    return "$" + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function statusClass(s){ return "status-"+s.replace(/[^a-zA-Z]+/g,"-").replace(/^-|-$/g,""); }
+
+  async function hashPassword(password, email){
+    const enc = new TextEncoder().encode(password + ":" + email.trim().toLowerCase() + ":" + PEPPER);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+
+  function storageWorks(){
+    try{
+      const t = "__ipt_probe__";
+      localStorage.setItem(t, "1");
+      const ok = localStorage.getItem(t) === "1";
+      localStorage.removeItem(t);
+      return ok;
+    }catch(e){ return false; }
+  }
+
+  function setAutosaveStatus(ok){
+    const el = document.getElementById("autosaveText");
+    if(!el) return;
+    if(cloudConfigured){
+      // cloud status is driven by updateCloudStatusUI() instead
+      return;
+    }
+    if(ok){
+      const t = new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit'});
+      el.textContent = "● Saved locally " + t;
+      el.style.color = "#3DD68C";
+    } else {
+      el.textContent = "● Not saving — see warning";
+      el.style.color = "var(--red)";
+    }
+  }
+
+  function updateCloudStatusUI(status){
+    // status: "syncing" | "ok" | "error" | "off"
+    const sidebarEl = document.getElementById("autosaveText");
+    const panelStatus = document.getElementById("cloudSyncStatus");
+    const panelDesc = document.getElementById("cloudSyncDesc");
+    const t = new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit',second:'2-digit'});
+    if(status==="off"){
+      if(sidebarEl){ sidebarEl.textContent = "● Local only (no cloud)"; sidebarEl.style.color = "var(--amber)"; }
+      if(panelStatus){ panelStatus.textContent = "Not configured"; panelStatus.style.color = "var(--amber)"; }
+      if(panelDesc) panelDesc.textContent = "Cloud sync isn't set up, so data only lives in this browser. Follow the setup steps below to sync across your phone and desktop.";
+      return;
+    }
+    if(status==="syncing"){
+      if(sidebarEl){ sidebarEl.textContent = "☁ Syncing..."; sidebarEl.style.color = "#8B8D98"; }
+      if(panelStatus){ panelStatus.textContent = "Syncing..."; panelStatus.style.color = "var(--muted)"; }
+      return;
+    }
+    if(status==="ok"){
+      if(sidebarEl){ sidebarEl.textContent = "☁ Synced " + t; sidebarEl.style.color = "#3DD68C"; }
+      if(panelStatus){ panelStatus.textContent = "Connected — last synced " + t; panelStatus.style.color = "#3DD68C"; }
+      if(panelDesc) panelDesc.textContent = "Your data is syncing to Google Sheets. Open this page on any device, log in with the same account, and it'll load the same data.";
+      return;
+    }
+    if(status==="error"){
+      if(sidebarEl){ sidebarEl.textContent = "☁ Sync failed"; sidebarEl.style.color = "var(--red)"; }
+      if(panelStatus){ panelStatus.textContent = "Couldn't reach the sheet — check the URL/deployment"; panelStatus.style.color = "var(--red)"; }
+      if(panelDesc) panelDesc.textContent = "Cloud sync is configured but the last attempt failed. Your data is still safe locally in this browser and will retry.";
+      return;
+    }
+  }
+
+  function updateAcctStatusUI(){
+    const sidebar = document.getElementById("acctStatusText");
+    const settingsDesc = document.getElementById("settingsAcctDesc");
+    const settingsBtns = document.getElementById("settingsAuthButtons");
+    const cpPanel = document.getElementById("changePasswordPanel");
+    if(currentAuth.token && currentAuth.email){
+      if(sidebar){ sidebar.textContent = currentAuth.email; sidebar.style.color = "#fff"; }
+      if(settingsDesc) settingsDesc.textContent = "Signed in as " + currentAuth.email + ". Your data syncs to this account on any device.";
+      if(settingsBtns) settingsBtns.innerHTML = '<button class="btn btn-outline" id="logoutBtn">Log out</button>';
+      if(cpPanel) cpPanel.classList.remove("hidden");
+      const logoutBtn = document.getElementById("logoutBtn");
+      if(logoutBtn) logoutBtn.addEventListener("click", doLogout);
+    } else {
+      if(sidebar){ sidebar.textContent = "Local only"; sidebar.style.color = "#B9C2D4"; }
+      if(settingsDesc) settingsDesc.textContent = cloudConfigured ? "You're not signed in — this device is in local-only mode." : "Set up Cloud Sync (Data tab) to enable accounts.";
+      if(settingsBtns) settingsBtns.innerHTML = cloudConfigured ? '<button class="btn btn-gold" id="signinBtnSettings">Sign in / Create account</button>' : '';
+      if(cpPanel) cpPanel.classList.add("hidden");
+      const signinBtn = document.getElementById("signinBtnSettings");
+      if(signinBtn) signinBtn.addEventListener("click", showAuthOverlay);
+    }
+  }
+
+  function renderSettingsTab(){ updateAcctStatusUI(); }
+
+  async function pushToCloud(){
+    if(!cloudConfigured || !currentAuth.token) return;
+    if(pushPromise){
+      // A push is already running — queue this one so the change is never silently dropped.
+      pushQueued = true;
+      return pushPromise;
+    }
+    pushPromise = (async ()=>{
+      updateCloudStatusUI("syncing");
+      try{
+        const res = await fetch(SHEET_API_URL, {
+          method: "POST",
+          headers: {"Content-Type":"text/plain;charset=utf-8"}, // avoids CORS preflight against Apps Script
+          body: JSON.stringify({action:"saveData", token: currentAuth.token, data: state})
+        });
+        const json = await res.json();
+        if(!json.ok) throw new Error(json.error || "save_failed");
+        lastCloudSyncOk = true;
+        updateCloudStatusUI("ok");
+      }catch(e){
+        lastCloudSyncOk = false;
+        updateCloudStatusUI("error");
+        pushQueued = true; // retry the latest state once we're able to
+        console.warn("Cloud sync push failed", e);
+      }
+      pushPromise = null;
+      if(pushQueued){
+        pushQueued = false;
+        await pushToCloud();
+      }
+    })();
+    return pushPromise;
+  }
+
+  async function pullFromCloud(showSyncing){
+    if(!cloudConfigured || !currentAuth.token) return false;
+    if(pushPromise) await pushPromise; // never let a pull overwrite a not-yet-synced local change
+    if(showSyncing) updateCloudStatusUI("syncing");
+    try{
+      const res = await fetch(SHEET_API_URL + "?action=getData&token=" + encodeURIComponent(currentAuth.token), {cache:"no-store"});
+      const json = await res.json();
+      if(!json.ok){
+        if(json.error === "invalid_session"){ doLogout(true); }
+        throw new Error(json.error || "load_failed");
+      }
+      if(json.data && (json.data.carriers || json.data.sales || json.data.agentName)){
+        state = Object.assign({agentName:"",carriers:[],sales:[]}, json.data);
+      }
+      lastCloudSyncOk = true;
+      updateCloudStatusUI("ok");
+      return true;
+    }catch(e){
+      lastCloudSyncOk = false;
+      updateCloudStatusUI("error");
+      console.warn("Cloud sync pull failed", e);
+      return false;
+    }
+  }
+
+  async function clearCloudData(){
+    if(!cloudConfigured || !currentAuth.token) return;
+    try{
+      await fetch(SHEET_API_URL, {
+        method:"POST",
+        headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"clearData", token: currentAuth.token})
+      });
+    }catch(e){ console.warn("Cloud clear failed", e); }
+  }
+
+  // ---------------- Auth: signup / login / logout ----------------
+  function persistAuth(token, email){
+    currentAuth = {token, email};
+    try{
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+      localStorage.setItem(AUTH_EMAIL_KEY, email);
+    }catch(e){ /* best effort */ }
+  }
+  function clearPersistedAuth(){
+    currentAuth = {token:null, email:null};
+    try{
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_EMAIL_KEY);
+    }catch(e){}
+  }
+
+  function showAuthOverlay(){ document.getElementById("authOverlay").classList.remove("hidden"); }
+  function hideAuthOverlay(){ document.getElementById("authOverlay").classList.add("hidden"); }
+
+  async function doSignup(){
+    const email = document.getElementById("auth_signup_email").value.trim();
+    const pass = document.getElementById("auth_signup_pass").value;
+    const pass2 = document.getElementById("auth_signup_pass2").value;
+    const errEl = document.getElementById("authSignupError");
+    errEl.textContent = "";
+    if(!email || !pass){ errEl.textContent = "Enter an email and password."; return; }
+    if(pass.length < 8){ errEl.textContent = "Password must be at least 8 characters."; return; }
+    if(pass !== pass2){ errEl.textContent = "Passwords don't match."; return; }
+    const btn = document.getElementById("authSignupBtn");
+    btn.textContent = "Creating account..."; btn.disabled = true;
+    try{
+      const hash = await hashPassword(pass, email);
+      const res = await fetch(SHEET_API_URL, {
+        method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"signup", email, hash})
+      });
+      const json = await res.json();
+      if(!json.ok){
+        errEl.textContent = json.error === "email_taken" ? "An account with that email already exists." : "Something went wrong. Try again.";
+        return;
+      }
+      if(!json.token || typeof json.token !== "string"){
+        // The server responded ok:true but didn't return a real token — almost always means
+        // the Apps Script deployed on SHEET_API_URL is still the old single-user version.
+        errEl.textContent = "Server didn't return an account token. Your Apps Script backend needs to be updated to the multi-user version (Data tab → Cloud Sync → setup instructions) and redeployed as a New version.";
+        return;
+      }
+      persistAuth(json.token, json.email || email);
+      hideAuthOverlay();
+      state = {agentName:"", carriers:[], sales:[]};
+      await pushToCloud();
+      renderAll(); recalc(); updateAcctStatusUI();
+    }catch(e){
+      errEl.textContent = "Couldn't reach the server. Check your connection and Apps Script URL.";
+    }finally{
+      btn.textContent = "Create account"; btn.disabled = false;
+    }
+  }
+
+  async function doLogin(){
+    const email = document.getElementById("auth_login_email").value.trim();
+    const pass = document.getElementById("auth_login_pass").value;
+    const errEl = document.getElementById("authLoginError");
+    errEl.textContent = "";
+    if(!email || !pass){ errEl.textContent = "Enter your email and password."; return; }
+    const btn = document.getElementById("authLoginBtn");
+    btn.textContent = "Logging in..."; btn.disabled = true;
+    try{
+      const hash = await hashPassword(pass, email);
+      const res = await fetch(SHEET_API_URL, {
+        method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"login", email, hash})
+      });
+      const json = await res.json();
+      if(!json.ok){
+        errEl.textContent = "Incorrect email or password.";
+        return;
+      }
+      if(!json.token || typeof json.token !== "string"){
+        errEl.textContent = "Server didn't return an account token. Your Apps Script backend needs to be updated to the multi-user version (Data tab → Cloud Sync → setup instructions) and redeployed as a New version.";
+        return;
+      }
+      persistAuth(json.token, json.email || email);
+      hideAuthOverlay();
+      await pullFromCloud(true);
+      renderAll(); recalc(); updateAcctStatusUI();
+    }catch(e){
+      errEl.textContent = "Couldn't reach the server. Check your connection and Apps Script URL.";
+    }finally{
+      btn.textContent = "Log in"; btn.disabled = false;
+    }
+  }
+
+  async function doLogout(silent){
+    const token = currentAuth.token;
+    clearPersistedAuth();
+    state = {agentName:"", carriers:[], sales:[]};
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    if(token){
+      fetch(SHEET_API_URL, {
+        method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"logout", token})
+      }).catch(()=>{});
+    }
+    renderAll(); recalc(); updateAcctStatusUI();
+    if(!silent) showAuthOverlay();
+  }
+
+  function load(){
+    try{
+      let raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) raw = sessionStorage.getItem(STORAGE_KEY); // fallback if localStorage was wiped mid-session
+      if(raw){
+        const parsed = JSON.parse(raw);
+        state = Object.assign(state, parsed);
+      }
+    }catch(e){ console.warn("Could not load saved data", e); }
+  }
+  function save(){
+    let ok = true;
+    try{
+      const json = JSON.stringify(state);
+      localStorage.setItem(STORAGE_KEY, json);
+      try{ sessionStorage.setItem(STORAGE_KEY, json); }catch(e2){ /* best effort */ }
+    }catch(e){
+      ok = false;
+      console.warn("Could not save data", e);
+    }
+    setAutosaveStatus(ok);
+    // Only show the local-storage-broken banner if we also have no cloud safety net.
+    document.getElementById("storageWarningBanner").classList.toggle("hidden", ok || cloudConfigured);
+    if(cloudConfigured) pushToCloud();
+    return ok;
+  }
+
+  function carrierById(id){ return state.carriers.find(c=>c.id===id); }
+
+  /* ---------------- Tabs ---------------- */
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelectorAll(".tab-content").forEach(s=>s.classList.add("hidden"));
+      document.getElementById("tab-"+btn.dataset.tab).classList.remove("hidden");
+      if(btn.dataset.tab==="dashboard") renderDashboard();
+      if(btn.dataset.tab==="saleslog") renderSalesTable();
+      if(btn.dataset.tab==="carriers") renderCarriers();
+      if(btn.dataset.tab==="logsale") populateCarrierSelects();
+      if(btn.dataset.tab==="settings") renderSettingsTab();
+    });
+  });
+
+  /* ---------------- Agent name ---------------- */
+  const agentInput = document.getElementById("agentName");
+  agentInput.addEventListener("input", ()=>{ state.agentName = agentInput.value; save(); });
+
+  /* ---------------- Today chip / month label ---------------- */
+  function setDateChips(){
+    const today = new Date();
+    document.getElementById("todayChip").textContent = today.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric', year:'numeric'});
+    document.getElementById("monthLabel").textContent = today.toLocaleDateString(undefined,{month:'long', year:'numeric'});
+    document.getElementById("f_date").value = today.toISOString().slice(0,10);
+  }
+
+  /* ---------------- Carriers & Products ---------------- */
+  function carrierByName(name){
+    const n = (name||"").trim().toLowerCase();
+    if(!n) return null;
+    return state.carriers.find(c=>c.name.trim().toLowerCase()===n) || null;
+  }
+
+  function findProduct(carrier, name){
+    if(!carrier || !name) return null;
+    const n = name.trim().toLowerCase();
+    if(!n) return null;
+    return (carrier.products||[]).find(p=>p.name.trim().toLowerCase()===n) || null;
+  }
+
+  function findOrCreateProduct(carrier, name, compVal, advVal, capVal){
+    if(!carrier || !name) return null;
+    if(!carrier.products) carrier.products = [];
+    let product = findProduct(carrier, name);
+    if(!product){
+      product = { id: uid(), name: name.trim(), comp: compVal, advance: advVal, cap: capVal||0 };
+      carrier.products.push(product);
+    }
+    return product;
+  }
+
+  function populateCarrierSelects(){
+    const dl = document.getElementById("carrierDatalist");
+    const filt = document.getElementById("filterCarrier");
+    const pCarrierSel = document.getElementById("p_carrier");
+    const prevFilt = filt.value;
+    const prevPCarrier = pCarrierSel.value;
+    dl.innerHTML = "";
+    filt.innerHTML = '<option value="">All carriers</option>';
+    pCarrierSel.innerHTML = state.carriers.length ? "" : '<option value="">Add a carrier first</option>';
+    state.carriers.forEach(c=>{
+      const o1 = document.createElement("option"); o1.value=c.name; dl.appendChild(o1);
+      const o2 = document.createElement("option"); o2.value=c.id; o2.textContent=c.name; filt.appendChild(o2);
+      const o3 = document.createElement("option"); o3.value=c.id; o3.textContent=c.name; pCarrierSel.appendChild(o3);
+    });
+    if(state.carriers.some(c=>c.id===prevFilt)) filt.value = prevFilt;
+    if(state.carriers.some(c=>c.id===prevPCarrier)) pCarrierSel.value = prevPCarrier;
+    onCarrierChange();
+  }
+
+  function populateProductDatalist(){
+    const dl = document.getElementById("productDatalist");
+    dl.innerHTML = "";
+    const carrier = carrierByName(document.getElementById("f_carrier_text").value);
+    if(carrier){
+      (carrier.products||[]).forEach(p=>{
+        const o = document.createElement("option"); o.value = p.name; dl.appendChild(o);
+      });
+    }
+  }
+
+  document.getElementById("f_carrier_text").addEventListener("input", onCarrierChange);
+  document.getElementById("f_carrier_text").addEventListener("change", onCarrierChange);
+  function onCarrierChange(){
+    const c = carrierByName(document.getElementById("f_carrier_text").value);
+    if(c){
+      document.getElementById("f_comp").value = c.comp;
+      document.getElementById("f_advance").value = c.advance;
+      document.getElementById("f_advanceCap").value = c.cap ? c.cap : "";
+    }
+    populateProductDatalist();
+    onProductChange();
+  }
+
+  document.getElementById("f_product_text").addEventListener("input", onProductChange);
+  document.getElementById("f_product_text").addEventListener("change", onProductChange);
+  function onProductChange(){
+    const carrier = carrierByName(document.getElementById("f_carrier_text").value);
+    const productName = document.getElementById("f_product_text").value;
+    const product = findProduct(carrier, productName);
+    if(product){
+      document.getElementById("f_comp").value = product.comp;
+      document.getElementById("f_advance").value = product.advance;
+      document.getElementById("f_advanceCap").value = product.cap ? product.cap : "";
+    }
+    recalc();
+  }
+
+  document.getElementById("addCarrierBtn").addEventListener("click", ()=>{
+    const name = document.getElementById("c_name").value.trim();
+    const comp = parseFloat(document.getElementById("c_comp").value);
+    const advance = parseFloat(document.getElementById("c_advance").value);
+    const cap = parseFloat(document.getElementById("c_cap").value) || 0;
+    const months = parseFloat(document.getElementById("c_months").value) || 0;
+    if(!name){ alert("Enter a carrier name."); return; }
+    if(isNaN(comp) || isNaN(advance)){ alert("Enter comp and advance rates."); return; }
+    state.carriers.push({
+      id:uid(), name, comp, advance, cap, months, products:[],
+      color: PALETTE[state.carriers.length % PALETTE.length]
+    });
+    save();
+    document.getElementById("c_name").value="";
+    document.getElementById("c_comp").value="";
+    document.getElementById("c_advance").value="";
+    document.getElementById("c_cap").value="";
+    document.getElementById("c_months").value="";
+    renderCarriers();
+    populateCarrierSelects();
+  });
+
+  document.getElementById("addProductBtn").addEventListener("click", ()=>{
+    const carrierId = document.getElementById("p_carrier").value;
+    const carrier = state.carriers.find(c=>c.id===carrierId);
+    const name = document.getElementById("p_name").value.trim();
+    const compRaw = document.getElementById("p_comp").value;
+    const advRaw = document.getElementById("p_advance").value;
+    const capRaw = document.getElementById("p_cap").value;
+    if(!carrier){ alert("Choose a carrier first (add one above if you haven't)."); return; }
+    if(!name){ alert("Enter a product name."); return; }
+    if(!carrier.products) carrier.products = [];
+    if(findProduct(carrier, name)){ alert("This carrier already has a product with that name."); return; }
+    carrier.products.push({
+      id: uid(),
+      name,
+      comp: compRaw !== "" ? parseFloat(compRaw)||0 : carrier.comp,
+      advance: advRaw !== "" ? parseFloat(advRaw)||0 : carrier.advance,
+      cap: capRaw !== "" ? parseFloat(capRaw)||0 : (carrier.cap||0)
+    });
+    save();
+    document.getElementById("p_name").value="";
+    document.getElementById("p_comp").value="";
+    document.getElementById("p_advance").value="";
+    document.getElementById("p_cap").value="";
+    renderCarriers();
+    populateProductDatalist();
+  });
+
+  function renderCarriers(){
+    const grid = document.getElementById("carrierGrid");
+    const empty = document.getElementById("carrierEmptyState");
+    grid.innerHTML = "";
+    if(state.carriers.length===0){ empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+    state.carriers.forEach(c=>{
+      if(!c.products) c.products = [];
+      const count = state.sales.filter(s=>s.carrierId===c.id).length;
+      const div = document.createElement("div");
+      div.className = "carrier-card";
+      const productsHtml = c.products.length ? `
+        <div class="product-list">
+          ${c.products.map(p=>`
+            <div class="product-row">
+              <div>
+                <div class="pname">${escapeHtml(p.name)}</div>
+                <div class="prates">${p.comp}% comp · ${p.advance}% adv${p.cap?' · cap '+fmtMoney(p.cap).replace('.00',''):''}</div>
+              </div>
+              <button class="icon-btn del product-del" title="Delete product" data-cid="${c.id}" data-pid="${p.id}">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+              </button>
+            </div>
+          `).join("")}
+        </div>
+      ` : `<div class="product-list"><div class="prates" style="text-align:center;padding:4px 0;">No products yet — uses carrier defaults</div></div>`;
+      div.innerHTML = `
+        <div class="top">
+          <div class="name"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>
+          <button class="icon-btn del" title="Delete carrier" data-id="${c.id}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+          </button>
+        </div>
+        <div class="carrier-stats">
+          <div>Comp<span>${c.comp}%</span></div>
+          <div>Advance<span>${c.advance}%</span></div>
+          <div>Cap<span>${c.cap ? fmtMoney(c.cap).replace('.00','') : '—'}</span></div>
+          <div>Backend<span>${c.months||0} mo</span></div>
+          <div>Sales<span>${count}</span></div>
+        </div>
+        ${productsHtml}
+      `;
+      grid.appendChild(div);
+    });
+    grid.querySelectorAll(".icon-btn.del:not(.product-del)").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const inUse = state.sales.some(s=>s.carrierId===btn.dataset.id);
+        if(inUse && !confirm("This carrier has sales logged against it. Delete anyway? (Sales will keep their saved numbers.)")) return;
+        state.carriers = state.carriers.filter(c=>c.id!==btn.dataset.id);
+        save(); renderCarriers(); populateCarrierSelects();
+      });
+    });
+    grid.querySelectorAll(".product-del").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const carrier = state.carriers.find(c=>c.id===btn.dataset.cid);
+        if(!carrier) return;
+        const inUse = state.sales.some(s=>s.productId===btn.dataset.pid);
+        if(inUse && !confirm("This product has sales logged against it. Delete anyway? (Sales will keep their saved numbers.)")) return;
+        carrier.products = (carrier.products||[]).filter(p=>p.id!==btn.dataset.pid);
+        save(); renderCarriers(); populateProductDatalist();
+      });
+    });
+  }
+
+  /* ---------------- Log a Sale: live calc ---------------- */
+  const premEl = document.getElementById("f_premium");
+  const premTypeEl = document.getElementById("f_premType");
+  const compEl = document.getElementById("f_comp");
+  const advEl = document.getElementById("f_advance");
+  const capEl = document.getElementById("f_advanceCap");
+  [premEl, premTypeEl, compEl, advEl, capEl].forEach(el=> el.addEventListener("input", recalc));
+  premTypeEl.addEventListener("change", recalc);
+
+  function computeCalc(premium, premType, comp, adv, cap){
+    const isMonthly = premType !== "annual";
+    const ap = isMonthly ? premium*12 : premium;
+    const monthlyPremium = isMonthly ? premium : premium/12;
+    const commission = ap * (comp/100);
+    let advanceAmt = commission * (adv/100);
+    let capped = false;
+    if(cap > 0 && advanceAmt > cap){
+      advanceAmt = cap;
+      capped = true;
+    }
+    // Backend = monthly premium × comp% for months 10, 11, and 12 (3 months' worth).
+    const backendAmt = monthlyPremium * (comp/100) * 3;
+    return {ap, commission, advanceAmt, backendAmt, capped};
+  }
+  function currentCalc(){
+    const premium = parseFloat(premEl.value) || 0;
+    const comp = parseFloat(compEl.value) || 0;
+    const adv = parseFloat(advEl.value) || 0;
+    const cap = parseFloat(capEl.value) || 0;
+    return computeCalc(premium, premTypeEl.value, comp, adv, cap);
+  }
+  function recalc(){
+    const {ap, commission, advanceAmt, backendAmt, capped} = currentCalc();
+    document.getElementById("calcAP").textContent = fmtMoney(ap);
+    document.getElementById("calcComm").textContent = fmtMoney(commission);
+    document.getElementById("calcAdv").textContent = fmtMoney(advanceAmt);
+    document.getElementById("calcBack").textContent = fmtMoney(backendAmt);
+    const capNote = document.getElementById("calcCapNote");
+    capNote.textContent = capped ? "Capped by carrier max" : "";
+    capNote.style.color = capped ? "var(--amber)" : "";
+  }
+
+  document.getElementById("resetFormBtn").addEventListener("click", ()=>{ clearForm(); clearDraft(); });
+  function clearForm(){
+    document.getElementById("f_client").value="";
+    document.getElementById("f_premium").value="";
+    document.getElementById("f_product_text").value="";
+    document.getElementById("f_effectiveDate").value="";
+    document.getElementById("f_status").value="Submitted";
+    document.getElementById("f_backendReceived").checked=false;
+    document.getElementById("f_notes").value="";
+    setDateChips();
+    recalc();
+  }
+
+  // ---- Draft autosave for the Log a Sale form (protects in-progress typing, not just saved sales) ----
+  const DRAFT_KEY = "ipt_draft_v1";
+  const draftFieldIds = ["f_client","f_date","f_effectiveDate","f_carrier_text","f_product_text","f_premType","f_premium","f_comp","f_advance","f_advanceCap","f_status","f_backendReceived","f_notes"];
+  function saveDraft(){
+    const draft = {};
+    draftFieldIds.forEach(id=>{
+      const el = document.getElementById(id);
+      draft[id] = el.type === "checkbox" ? el.checked : el.value;
+    });
+    try{
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }catch(e){ /* best effort */ }
+  }
+  function restoreDraft(){
+    try{
+      const raw = localStorage.getItem(DRAFT_KEY) || sessionStorage.getItem(DRAFT_KEY);
+      if(!raw) return;
+      const draft = JSON.parse(raw);
+      let hasContent = false;
+      draftFieldIds.forEach(id=>{
+        const el = document.getElementById(id);
+        if(draft[id] === undefined) return;
+        if(el.type === "checkbox"){ el.checked = !!draft[id]; }
+        else { el.value = draft[id]; }
+        if(id!=="f_date" && id!=="f_status" && id!=="f_premType" && draft[id]) hasContent = true;
+      });
+      if(hasContent) recalc();
+    }catch(e){ /* ignore corrupt draft */ }
+  }
+  function clearDraft(){
+    try{ localStorage.removeItem(DRAFT_KEY); sessionStorage.removeItem(DRAFT_KEY); }catch(e){}
+  }
+  draftFieldIds.forEach(id=>{
+    document.getElementById(id).addEventListener("input", saveDraft);
+    document.getElementById(id).addEventListener("change", saveDraft);
+  });
+
+  document.getElementById("submitSaleBtn").addEventListener("click", ()=>{
+    const client = document.getElementById("f_client").value.trim();
+    const carrierName = document.getElementById("f_carrier_text").value.trim();
+    const productName = document.getElementById("f_product_text").value.trim();
+    const date = document.getElementById("f_date").value;
+    const effectiveDate = document.getElementById("f_effectiveDate").value;
+    if(!client){ alert("Enter a client name."); return; }
+    if(!carrierName){ alert("Enter a carrier name."); return; }
+    if(!premEl.value){ alert("Enter a premium amount."); return; }
+
+    let carrier = carrierByName(carrierName);
+    if(!carrier){
+      carrier = {
+        id: uid(),
+        name: carrierName,
+        comp: parseFloat(compEl.value)||0,
+        advance: parseFloat(advEl.value)||0,
+        cap: parseFloat(capEl.value)||0,
+        months: 0,
+        products: [],
+        color: PALETTE[state.carriers.length % PALETTE.length]
+      };
+      state.carriers.push(carrier);
+    }
+    const carrierId = carrier.id;
+
+    const product = productName ? findOrCreateProduct(carrier, productName, parseFloat(compEl.value)||0, parseFloat(advEl.value)||0, parseFloat(capEl.value)||0) : null;
+
+    const {ap, commission, advanceAmt, backendAmt, capped} = currentCalc();
+    state.sales.push({
+      id: uid(),
+      date: date || new Date().toISOString().slice(0,10),
+      effectiveDate: effectiveDate || "",
+      client,
+      carrierId,
+      product: productName || "",
+      productId: product ? product.id : null,
+      premType: premTypeEl.value,
+      premium: parseFloat(premEl.value)||0,
+      comp: parseFloat(compEl.value)||0,
+      advance: parseFloat(advEl.value)||0,
+      advanceCap: parseFloat(capEl.value)||0,
+      capped,
+      ap, commission, advanceAmt, backendAmt,
+      status: document.getElementById("f_status").value,
+      backendReceived: document.getElementById("f_backendReceived").checked,
+      notes: document.getElementById("f_notes").value.trim()
+    });
+    save();
+    clearForm();
+    clearDraft();
+    populateCarrierSelects();
+    renderCarriers();
+    renderDashboard();
+    renderSalesTable();
+    // jump to sales log so they see it landed
+    document.querySelector('.tab-btn[data-tab="saleslog"]').click();
+  });
+
+  /* ---------------- Sales table ---------------- */
+  document.getElementById("searchClient").addEventListener("input", renderSalesTable);
+  document.getElementById("filterCarrier").addEventListener("change", renderSalesTable);
+  document.getElementById("filterStatus").addEventListener("change", renderSalesTable);
+
+  function renderSalesTable(){
+    const body = document.getElementById("salesTableBody");
+    const empty = document.getElementById("salesEmptyState");
+    const q = document.getElementById("searchClient").value.toLowerCase();
+    const fCarrier = document.getElementById("filterCarrier").value;
+    const fStatus = document.getElementById("filterStatus").value;
+
+    let rows = state.sales.slice().sort((a,b)=> b.date.localeCompare(a.date));
+    rows = rows.filter(s=>{
+      if(q && !s.client.toLowerCase().includes(q) && !(s.product||"").toLowerCase().includes(q)) return false;
+      if(fCarrier && s.carrierId!==fCarrier) return false;
+      if(fStatus && s.status!==fStatus) return false;
+      return true;
+    });
+
+    body.innerHTML = "";
+    if(rows.length===0){ empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+
+    rows.forEach(s=>{
+      const c = carrierById(s.carrierId);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="num">${s.date}</td>
+        <td class="num">${s.effectiveDate||'—'}</td>
+        <td>${escapeHtml(s.client)}</td>
+        <td><span class="carrier-tag"><span class="dot" style="background:${c?c.color:'#999'}"></span>${c?escapeHtml(c.name):'—'}</span></td>
+        <td>${s.product?escapeHtml(s.product):'<span style="color:var(--slate);">—</span>'}</td>
+        <td class="num">${fmtMoney(s.ap)}</td>
+        <td class="num">${s.comp}%</td>
+        <td class="num">${s.advance}%</td>
+        <td class="num">${fmtMoney(s.advanceAmt)}${s.capped?' <span style="color:var(--amber);font-size:10px;" title="Advance capped by carrier">CAP</span>':''}</td>
+        <td class="num">${fmtMoney(s.backendAmt)}${s.backendReceived?' ✓':''}</td>
+        <td><select class="status-select" data-id="${s.id}" style="width:auto;padding:4px 8px;font-size:11px;">
+              ${["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"].map(opt=>`<option ${opt===s.status?'selected':''}>${opt}</option>`).join("")}
+            </select></td>
+        <td class="row-actions">
+          <button class="icon-btn backend-toggle-btn" data-id="${s.id}" title="Toggle backend received">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+          </button>
+          <button class="icon-btn del sale-del" data-id="${s.id}" title="Delete">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+          </button>
+        </td>
+      `;
+      body.appendChild(tr);
+    });
+
+    body.querySelectorAll(".status-select").forEach(sel=>{
+      sel.addEventListener("change", ()=>{
+        const sale = state.sales.find(s=>s.id===sel.dataset.id);
+        if(sale){ sale.status = sel.value; save(); renderDashboard(); }
+      });
+    });
+    body.querySelectorAll(".backend-toggle-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const sale = state.sales.find(s=>s.id===btn.dataset.id);
+        if(sale){ sale.backendReceived = !sale.backendReceived; save(); renderSalesTable(); renderDashboard(); }
+      });
+    });
+    body.querySelectorAll(".sale-del").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        if(!confirm("Delete this sale?")) return;
+        state.sales = state.sales.filter(s=>s.id!==btn.dataset.id);
+        save(); renderSalesTable(); renderDashboard();
+      });
+    });
+  }
+
+  /* ---------------- Dashboard ---------------- */
+  function renderDashboard(){
+    const sales = state.sales;
+    const submitted = sales.filter(s=> s.status!=="Not Taken");
+    const issued = sales.filter(s=> s.status==="Issued & Paid");
+    const lapsed = sales.filter(s=> s.status==="Lapsed / Chargeback");
+
+    const totalAP = submitted.reduce((a,s)=>a+s.ap,0);
+    const advancePaid = issued.reduce((a,s)=>a+s.advanceAmt,0);
+    const backendPending = issued.filter(s=>!s.backendReceived).reduce((a,s)=>a+s.backendAmt,0);
+    const backendPendingCount = issued.filter(s=>!s.backendReceived).length;
+    const backendReceived = issued.filter(s=>s.backendReceived).reduce((a,s)=>a+s.backendAmt,0);
+    const lapsedAmt = lapsed.reduce((a,s)=>a+s.commission,0);
+
+    document.getElementById("tileSubmittedAP").textContent = fmtMoney(totalAP);
+    document.getElementById("tileSubmittedCount").textContent = submitted.length + " application" + (submitted.length===1?"":"s");
+    document.getElementById("tileIssuedCount").textContent = issued.length;
+    document.getElementById("tileIssuedAP").textContent = fmtMoney(issued.reduce((a,s)=>a+s.ap,0)) + " in AP";
+    document.getElementById("tileAdvance").textContent = fmtMoney(advancePaid);
+    document.getElementById("tileBackendPending").textContent = fmtMoney(backendPending);
+    document.getElementById("tileBackendPendingCount").textContent = backendPendingCount + " polic" + (backendPendingCount===1?"y":"ies") + " still earning out";
+    document.getElementById("tileBackendReceived").textContent = fmtMoney(backendReceived);
+    document.getElementById("tileLapsed").textContent = fmtMoney(lapsedAmt);
+    document.getElementById("tileLapsedCount").textContent = lapsed.length + " polic" + (lapsed.length===1?"y":"ies");
+
+    // Month to date
+    const now = new Date();
+    const ym = now.toISOString().slice(0,7);
+    const mtd = submitted.filter(s=>s.date.slice(0,7)===ym);
+    const mtdAP = mtd.reduce((a,s)=>a+s.ap,0);
+    const mtdComm = mtd.filter(s=>s.status==="Issued & Paid").reduce((a,s)=>a+s.commission,0);
+    const avgComp = mtd.length ? (mtd.reduce((a,s)=>a+s.comp,0)/mtd.length) : 0;
+    document.getElementById("mtdAP").textContent = fmtMoney(mtdAP);
+    document.getElementById("mtdCount").textContent = mtd.length;
+    document.getElementById("mtdComm").textContent = fmtMoney(mtdComm);
+    document.getElementById("mtdAvgComp").textContent = avgComp.toFixed(1)+"%";
+
+    // Recent
+    const recent = sales.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+    const list = document.getElementById("recentList");
+    if(recent.length===0){
+      list.innerHTML = '<div class="empty-state"><div class="big">✍️</div>No sales logged yet.</div>';
+    } else {
+      list.innerHTML = `<table><thead><tr><th>Date</th><th>Client</th><th>Carrier</th><th>AP</th><th>Status</th></tr></thead><tbody>` +
+        recent.map(s=>{
+          const c = carrierById(s.carrierId);
+          return `<tr>
+            <td class="num">${s.date}</td>
+            <td>${escapeHtml(s.client)}</td>
+            <td><span class="carrier-tag"><span class="dot" style="background:${c?c.color:'#999'}"></span>${c?escapeHtml(c.name):'—'}</span></td>
+            <td class="num">${fmtMoney(s.ap)}</td>
+            <td><span class="status-pill ${statusClass(s.status)}">${s.status}</span></td>
+          </tr>`;
+        }).join("") + `</tbody></table>`;
+    }
+  }
+
+  /* ---------------- Export / Import ---------------- */
+  function downloadBackupJson(){
+    const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+    downloadBlob(blob, "production-tracker-backup-"+new Date().toISOString().slice(0,10)+".json");
+  }
+  document.getElementById("exportJsonBtn").addEventListener("click", downloadBackupJson);
+  document.getElementById("backupNowBtn").addEventListener("click", downloadBackupJson);
+  document.getElementById("exportCsvBtn").addEventListener("click", ()=>{
+    const header = ["Date","Effective Date","Client","Carrier","Product","Premium Type","Premium","AP","Comp %","Advance %","Advance Cap","Commission","Advance $","Capped","Backend $","Backend Received","Status","Notes"];
+    const rows = state.sales.map(s=>{
+      const c = carrierById(s.carrierId);
+      return [s.date, s.effectiveDate||"", s.client, c?c.name:"", s.product||"", s.premType, s.premium, s.ap.toFixed(2), s.comp, s.advance, s.advanceCap||0, s.commission.toFixed(2), s.advanceAmt.toFixed(2), s.capped?"Yes":"No", s.backendAmt.toFixed(2), s.backendReceived?"Yes":"No", s.status, s.notes||""]
+        .map(v=> typeof v==="string" && (v.includes(",")||v.includes('"')) ? '"'+v.replace(/"/g,'""')+'"' : v);
+    });
+    const csv = [header.join(","), ...rows.map(r=>r.join(","))].join("\n");
+    downloadBlob(new Blob([csv],{type:"text/csv"}), "production-tracker-export.csv");
+  });
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  document.getElementById("importFile").addEventListener("change", (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try{
+        const parsed = JSON.parse(reader.result);
+        if(!confirm("This will replace your current data with the backup file. Continue?")) return;
+        state = Object.assign({agentName:"",carriers:[],sales:[]}, parsed);
+        save();
+        agentInput.value = state.agentName || "";
+        populateCarrierSelects();
+        renderCarriers();
+        renderSalesTable();
+        renderDashboard();
+        alert("Backup restored.");
+      }catch(err){
+        alert("That file couldn't be read as a valid backup.");
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // ---- CSV import for sales (matches existing carriers/products by name) ----
+  function parseCSV(text){
+    const rows = [];
+    let row = [], field = "", inQuotes = false;
+    for(let i=0;i<text.length;i++){
+      const ch = text[i];
+      if(inQuotes){
+        if(ch === '"'){
+          if(text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else { field += ch; }
+      } else {
+        if(ch === '"'){ inQuotes = true; }
+        else if(ch === ','){ row.push(field); field = ""; }
+        else if(ch === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+        else if(ch === '\r'){ /* skip, \n handles the line break */ }
+        else { field += ch; }
+      }
+    }
+    if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+    return rows.filter(r => r.length > 1 || (r[0]||"").trim() !== "");
+  }
+
+  function normalizeCsvHeader(h){ return (h||"").toString().trim().toLowerCase().replace(/[^a-z0-9]/g,""); }
+  const CSV_HEADER_MAP = {
+    date:"date", datesubmitted:"date", submitteddate:"date",
+    effectivedate:"effectiveDate", effdate:"effectiveDate",
+    client:"client", clientname:"client", name:"client", insured:"client",
+    carrier:"carrier", carriername:"carrier",
+    product:"product", productname:"product", plan:"product",
+    premiumtype:"premiumType", premtype:"premiumType",
+    premium:"premium", premiumamount:"premium", monthlypremium:"premium", amount:"premium",
+    ap:"ap", annualpremium:"ap",
+    comp:"comp", comppercent:"comp", commissionpercent:"comp", comprate:"comp",
+    advance:"advance", advancepercent:"advance", advancerate:"advance",
+    advancecap:"advanceCap", cap:"advanceCap",
+    status:"status",
+    backendreceived:"backendReceived", backendrecvd:"backendReceived",
+    notes:"notes", note:"notes"
+  };
+  const VALID_STATUSES = ["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"];
+
+  document.getElementById("importCsvBtn").addEventListener("click", async ()=>{
+    const fileInput = document.getElementById("importCsvFile");
+    const resultEl = document.getElementById("csvImportResult");
+    const file = fileInput.files[0];
+    if(!file){ resultEl.style.color = "var(--red)"; resultEl.textContent = "Choose a CSV file first."; return; }
+    resultEl.style.color = "var(--muted)";
+    resultEl.textContent = "Importing...";
+    try{
+      const text = await file.text();
+      const rows = parseCSV(text);
+      if(rows.length < 2){ resultEl.style.color = "var(--red)"; resultEl.textContent = "No data rows found in that file."; return; }
+      const headerKeys = rows[0].map(h => CSV_HEADER_MAP[normalizeCsvHeader(h)] || null);
+      if(!headerKeys.includes("client") || !headerKeys.includes("carrier") || !headerKeys.includes("premium")){
+        resultEl.style.color = "var(--red)";
+        resultEl.textContent = "Missing required columns — need at least Client, Carrier, and Premium.";
+        return;
+      }
+
+      let imported = 0, newCarriers = 0, newProducts = 0, skipped = 0;
+      for(let r=1;r<rows.length;r++){
+        const raw = rows[r];
+        if(raw.every(v=>!v || !v.trim())) continue;
+        const rec = {};
+        headerKeys.forEach((key, idx)=>{ if(key) rec[key] = (raw[idx]||"").trim(); });
+
+        const clientName = rec.client || "";
+        const carrierName = rec.carrier || "";
+        let premium = parseFloat(rec.premium);
+        let premType = (rec.premiumType||"monthly").toLowerCase().indexOf("annual") > -1 ? "annual" : "monthly";
+        if((isNaN(premium) || rec.premium==="") && rec.ap){
+          const apVal = parseFloat(rec.ap);
+          if(!isNaN(apVal)){ premium = apVal; premType = "annual"; }
+        }
+        if(!clientName || !carrierName || isNaN(premium)){ skipped++; continue; }
+
+        let carrier = carrierByName(carrierName);
+        if(!carrier){
+          carrier = {
+            id: uid(), name: carrierName,
+            comp: parseFloat(rec.comp)||0, advance: parseFloat(rec.advance)||0, cap: parseFloat(rec.advanceCap)||0,
+            months: 0, products: [],
+            color: PALETTE[state.carriers.length % PALETTE.length]
+          };
+          state.carriers.push(carrier);
+          newCarriers++;
+        }
+        if(!carrier.products) carrier.products = [];
+
+        let comp = carrier.comp, advance = carrier.advance, cap = carrier.cap || 0;
+        const productName = (rec.product||"").trim();
+        let product = null;
+        if(productName){
+          product = findProduct(carrier, productName);
+          if(!product){
+            product = {
+              id: uid(), name: productName,
+              comp: rec.comp ? (parseFloat(rec.comp)||carrier.comp) : carrier.comp,
+              advance: rec.advance ? (parseFloat(rec.advance)||carrier.advance) : carrier.advance,
+              cap: rec.advanceCap ? (parseFloat(rec.advanceCap)||carrier.cap||0) : (carrier.cap||0)
+            };
+            carrier.products.push(product);
+            newProducts++;
+          }
+          comp = product.comp; advance = product.advance; cap = product.cap||0;
+        } else {
+          // No product named — row-level comp/advance/cap override the carrier default, if given.
+          if(rec.comp) comp = parseFloat(rec.comp)||comp;
+          if(rec.advance) advance = parseFloat(rec.advance)||advance;
+          if(rec.advanceCap) cap = parseFloat(rec.advanceCap)||cap;
+        }
+
+        const calc = computeCalc(premium, premType, comp, advance, cap);
+        const status = VALID_STATUSES.find(s=>s.toLowerCase()===((rec.status||"").toLowerCase())) || "Submitted";
+
+        state.sales.push({
+          id: uid(),
+          date: rec.date || new Date().toISOString().slice(0,10),
+          effectiveDate: rec.effectiveDate || "",
+          client: clientName,
+          carrierId: carrier.id,
+          product: productName,
+          productId: product ? product.id : null,
+          premType, premium,
+          comp, advance, advanceCap: cap,
+          capped: calc.capped,
+          ap: calc.ap, commission: calc.commission, advanceAmt: calc.advanceAmt, backendAmt: calc.backendAmt,
+          status,
+          backendReceived: /^(y|yes|true|1)$/i.test(rec.backendReceived||""),
+          notes: rec.notes || ""
+        });
+        imported++;
+      }
+
+      save();
+      populateCarrierSelects();
+      renderCarriers();
+      renderSalesTable();
+      renderDashboard();
+
+      resultEl.style.color = imported > 0 ? "#3DD68C" : "var(--red)";
+      resultEl.textContent = `Imported ${imported} sale${imported===1?"":"s"}.` +
+        (newCarriers ? ` Created ${newCarriers} new carrier${newCarriers===1?"":"s"}.` : "") +
+        (newProducts ? ` Created ${newProducts} new product${newProducts===1?"":"s"}.` : "") +
+        (skipped ? ` Skipped ${skipped} row${skipped===1?"":"s"} (missing client/carrier/premium).` : "");
+      fileInput.value = "";
+    }catch(err){
+      resultEl.style.color = "var(--red)";
+      resultEl.textContent = "Couldn't read that file as CSV.";
+      console.warn("CSV import failed", err);
+    }
+  });
+
+  document.getElementById("clearAllBtnSettings").addEventListener("click", ()=>{
+    if(!confirm("This permanently deletes all carriers and sales" + (cloudConfigured && currentAuth.token ? " for this account" : " on this device") + ". This can't be undone. Continue?")) return;
+    if(!confirm("Are you absolutely sure? Consider exporting a backup first.")) return;
+    state = {agentName: state.agentName, carriers:[], sales:[]};
+    save();
+    if(cloudConfigured && currentAuth.token) clearCloudData();
+    populateCarrierSelects(); renderCarriers(); renderSalesTable(); renderDashboard();
+  });
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function renderAll(){
+    agentInput.value = state.agentName || "";
+    populateCarrierSelects();
+    renderCarriers();
+    renderSalesTable();
+    renderDashboard();
+  }
+
+  document.getElementById("syncNowBtn").addEventListener("click", async ()=>{
+    if(!cloudConfigured){
+      alert("Cloud Sync isn't configured yet — see the setup instructions below on this tab.");
+      return;
+    }
+    if(!currentAuth.token){
+      alert("Sign in first (see the Settings tab) to sync your data.");
+      return;
+    }
+    const okPull = await pullFromCloud(true);
+    if(okPull){ save(); renderAll(); recalc(); }
+  });
+
+  document.getElementById("testBackendBtn").addEventListener("click", async ()=>{
+    if(!cloudConfigured){
+      alert("Paste your Apps Script URL into SHEET_API_URL first (see setup instructions below).");
+      return;
+    }
+    const btn = document.getElementById("testBackendBtn");
+    btn.textContent = "Testing..."; btn.disabled = true;
+    try{
+      const res = await fetch(SHEET_API_URL + "?action=getData&token=__probe__", {cache:"no-store"});
+      const json = await res.json();
+      if(json && json.ok === false && json.error === "invalid_session"){
+        alert("✅ Multi-user backend detected — accounts should work. If signup/login is still failing, double check you clicked 'New version' when deploying (not just saved the script).");
+      } else {
+        alert("⚠️ This doesn't look like the multi-user backend yet (got an unexpected response). Go to Data tab → Cloud Sync → open setup instructions, copy the script shown there, paste it into Apps Script replacing everything, then Deploy → Manage deployments → edit → Version: New version → Deploy.\n\nRaw response: " + JSON.stringify(json).slice(0,300));
+      }
+    }catch(e){
+      alert("❌ Couldn't reach that URL at all. Check the SHEET_API_URL value and make sure the deployment access is set to 'Anyone'.");
+    }finally{
+      btn.textContent = "🔧 Test backend version"; btn.disabled = false;
+    }
+  });
+
+  // ---- Auth overlay wiring ----
+  document.getElementById("showSignupLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    document.getElementById("authModeLogin").classList.add("hidden");
+    document.getElementById("authModeSignup").classList.remove("hidden");
+  });
+  document.getElementById("showLoginLink").addEventListener("click", (e)=>{
+    e.preventDefault();
+    document.getElementById("authModeSignup").classList.add("hidden");
+    document.getElementById("authModeLogin").classList.remove("hidden");
+  });
+  document.getElementById("authLoginBtn").addEventListener("click", doLogin);
+  document.getElementById("authSignupBtn").addEventListener("click", doSignup);
+  document.getElementById("auth_login_pass").addEventListener("keydown", e=>{ if(e.key==="Enter") doLogin(); });
+  document.getElementById("auth_signup_pass2").addEventListener("keydown", e=>{ if(e.key==="Enter") doSignup(); });
+  document.getElementById("authContinueLocalBtn").addEventListener("click", hideAuthOverlay);
+
+  document.getElementById("changePasswordBtn").addEventListener("click", async ()=>{
+    const cur = document.getElementById("cp_current").value;
+    const next = document.getElementById("cp_new").value;
+    const msg = document.getElementById("changePasswordMsg");
+    msg.textContent = ""; msg.style.color = "var(--red)";
+    if(!cur || !next){ msg.textContent = "Fill in both fields."; return; }
+    if(next.length < 8){ msg.textContent = "New password must be at least 8 characters."; return; }
+    try{
+      const curHash = await hashPassword(cur, currentAuth.email);
+      // verify current password by attempting a login call
+      const loginRes = await fetch(SHEET_API_URL, {
+        method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"login", email: currentAuth.email, hash: curHash})
+      });
+      const loginJson = await loginRes.json();
+      if(!loginJson.ok){ msg.textContent = "Current password is incorrect."; return; }
+      const newHash = await hashPassword(next, currentAuth.email);
+      const res = await fetch(SHEET_API_URL, {
+        method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+        body: JSON.stringify({action:"changePassword", token: currentAuth.token, newHash})
+      });
+      const json = await res.json();
+      if(json.ok){
+        msg.style.color = "#3DD68C";
+        msg.textContent = "Password updated.";
+        document.getElementById("cp_current").value = "";
+        document.getElementById("cp_new").value = "";
+      } else {
+        msg.textContent = "Couldn't update password. Try again.";
+      }
+    }catch(e){
+      msg.textContent = "Couldn't reach the server.";
+    }
+  });
+
+  /* ---------------- Init ---------------- */
+  load(); // fast local render first, so the UI isn't blank while cloud loads
+  agentInput.value = state.agentName || "";
+  setDateChips();
+  populateCarrierSelects();
+  renderCarriers();
+  renderSalesTable();
+  renderDashboard();
+  recalc();
+  restoreDraft();
+
+  // Storage health check — warn immediately if this browser/embed can't persist data at all
+  // (suppressed once cloud sync is configured, since that's the real safety net at that point).
+  const storageOk = storageWorks();
+  document.getElementById("storageWarningBanner").classList.toggle("hidden", storageOk || cloudConfigured);
+  setAutosaveStatus(storageOk);
+
+  if(cloudConfigured){
+    // Restore a saved session if we have one
+    try{
+      const savedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+      const savedEmail = localStorage.getItem(AUTH_EMAIL_KEY);
+      if(savedToken && savedEmail) currentAuth = {token: savedToken, email: savedEmail};
+    }catch(e){}
+
+    if(currentAuth.token){
+      pullFromCloud(true).then(ok=>{
+        if(ok){ renderAll(); recalc(); }
+        else { hideAuthOverlay(); } // stay logged in locally even if a pull fails (e.g. offline)
+      });
+      setInterval(()=>{ pullFromCloud(false).then(ok=>{ if(ok){ renderAll(); } }); }, 30000);
+    } else {
+      showAuthOverlay();
+    }
+    updateAcctStatusUI();
+  } else {
+    updateCloudStatusUI("off");
+    document.getElementById("authNotConfigured").classList.remove("hidden");
+    document.getElementById("authModeLogin").classList.add("hidden");
+  }
+
+  // Heartbeat + exit-safety saves: catches any edge case and re-confirms storage is still alive.
+  setInterval(save, 20000);
+  document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") save(); });
+  window.addEventListener("beforeunload", save);
+})();
+</script>
+</body>
+</html>
