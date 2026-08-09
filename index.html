@@ -643,8 +643,8 @@
     <section id="tab-logsale" class="tab-content hidden">
       <div class="page-head">
         <div>
-          <h1>Log a Sale</h1>
-          <p>Enter the application. Comp, advance, and backend calculate automatically.</p>
+          <h1 id="logSaleTitle">Log a Sale</h1>
+          <p id="logSaleSub">Enter the application. Comp, advance, and backend calculate automatically.</p>
         </div>
       </div>
 
@@ -741,6 +741,7 @@
         </div>
 
         <div class="btn-row">
+          <button class="btn btn-outline hidden" id="cancelSaleEditBtn">Cancel edit</button>
           <button class="btn btn-outline" id="resetFormBtn">Clear</button>
           <button class="btn btn-gold" id="submitSaleBtn">Save sale</button>
         </div>
@@ -988,7 +989,7 @@
       </div>
 
       <div class="panel">
-        <h2>Add a carrier</h2>
+        <h2 id="carrierFormTitle">Add a carrier</h2>
         <div class="form-grid">
           <div class="field">
             <label>Carrier name</label>
@@ -1012,6 +1013,7 @@
           </div>
         </div>
         <div class="btn-row">
+          <button class="btn btn-outline hidden" id="cancelCarrierEditBtn">Cancel</button>
           <button class="btn btn-gold" id="addCarrierBtn">Add carrier</button>
         </div>
       </div>
@@ -1748,6 +1750,7 @@ function setUserDataBlob_(email, json) {
     recalc();
   }
 
+  let editingCarrierId = null;
   document.getElementById("addCarrierBtn").addEventListener("click", ()=>{
     const name = document.getElementById("c_name").value.trim();
     const comp = parseFloat(document.getElementById("c_comp").value);
@@ -1756,19 +1759,55 @@ function setUserDataBlob_(email, json) {
     const months = parseFloat(document.getElementById("c_months").value) || 0;
     if(!name){ alert("Enter a carrier name."); return; }
     if(isNaN(comp) || isNaN(advance)){ alert("Enter comp and advance rates."); return; }
-    state.carriers.push({
-      id:uid(), name, comp, advance, cap, months,
-      color: PALETTE[state.carriers.length % PALETTE.length]
-    });
+
+    if(editingCarrierId){
+      const carrier = state.carriers.find(c=>c.id===editingCarrierId);
+      if(carrier){
+        carrier.name = name; carrier.comp = comp; carrier.advance = advance; carrier.cap = cap; carrier.months = months;
+      }
+      cancelCarrierEdit();
+    } else {
+      state.carriers.push({
+        id:uid(), name, comp, advance, cap, months,
+        color: PALETTE[state.carriers.length % PALETTE.length]
+      });
+      document.getElementById("c_name").value="";
+      document.getElementById("c_comp").value="";
+      document.getElementById("c_advance").value="";
+      document.getElementById("c_cap").value="";
+      document.getElementById("c_months").value="";
+    }
     save();
+    renderCarriers();
+    populateCarrierSelects();
+  });
+
+  function startEditCarrier(id){
+    const carrier = state.carriers.find(c=>c.id===id);
+    if(!carrier) return;
+    editingCarrierId = id;
+    document.getElementById("c_name").value = carrier.name;
+    document.getElementById("c_comp").value = carrier.comp;
+    document.getElementById("c_advance").value = carrier.advance;
+    document.getElementById("c_cap").value = carrier.cap || "";
+    document.getElementById("c_months").value = carrier.months || "";
+    document.getElementById("carrierFormTitle").textContent = "Edit carrier";
+    document.getElementById("addCarrierBtn").textContent = "Save changes";
+    document.getElementById("cancelCarrierEditBtn").classList.remove("hidden");
+    document.getElementById("c_name").scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  function cancelCarrierEdit(){
+    editingCarrierId = null;
     document.getElementById("c_name").value="";
     document.getElementById("c_comp").value="";
     document.getElementById("c_advance").value="";
     document.getElementById("c_cap").value="";
     document.getElementById("c_months").value="";
-    renderCarriers();
-    populateCarrierSelects();
-  });
+    document.getElementById("carrierFormTitle").textContent = "Add a carrier";
+    document.getElementById("addCarrierBtn").textContent = "Add carrier";
+    document.getElementById("cancelCarrierEditBtn").classList.add("hidden");
+  }
+  document.getElementById("cancelCarrierEditBtn").addEventListener("click", cancelCarrierEdit);
 
   function renderCarriers(){
     const grid = document.getElementById("carrierGrid");
@@ -1783,9 +1822,14 @@ function setUserDataBlob_(email, json) {
       div.innerHTML = `
         <div class="top">
           <div class="name"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>
-          <button class="icon-btn del" title="Delete carrier" data-id="${c.id}">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
-          </button>
+          <div style="display:flex;gap:2px;">
+            <button class="icon-btn carrier-edit" title="Edit carrier" data-id="${c.id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </button>
+            <button class="icon-btn del" title="Delete carrier" data-id="${c.id}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+            </button>
+          </div>
         </div>
         <div class="carrier-stats">
           <div>Comp<span>${c.comp}%</span></div>
@@ -1797,11 +1841,15 @@ function setUserDataBlob_(email, json) {
       `;
       grid.appendChild(div);
     });
+    grid.querySelectorAll(".carrier-edit").forEach(btn=>{
+      btn.addEventListener("click", ()=>{ startEditCarrier(btn.dataset.id); });
+    });
     grid.querySelectorAll(".icon-btn.del").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const inUse = state.sales.some(s=>s.carrierId===btn.dataset.id);
         if(inUse && !confirm("This carrier has sales logged against it. Delete anyway? (Sales will keep their saved numbers.)")) return;
         state.carriers = state.carriers.filter(c=>c.id!==btn.dataset.id);
+        if(editingCarrierId===btn.dataset.id) cancelCarrierEdit();
         save(); renderCarriers(); populateCarrierSelects();
       });
     });
@@ -1927,8 +1975,7 @@ function setUserDataBlob_(email, json) {
     const carrierId = carrier.id;
 
     const {ap, commission, advanceAmt, backendAmt, capped} = currentCalc();
-    state.sales.push({
-      id: uid(),
+    const saleData = {
       date: date || todayISO(),
       effectiveDate: effectiveDate || "",
       client,
@@ -1946,7 +1993,22 @@ function setUserDataBlob_(email, json) {
       referralsCollected: document.getElementById("f_referralsCollected").value,
       reset: document.getElementById("f_reset").value,
       notes: document.getElementById("f_notes").value.trim()
-    });
+    };
+
+    if(editingSaleId){
+      const idx = state.sales.findIndex(s=>s.id===editingSaleId);
+      if(idx > -1) state.sales[idx] = Object.assign({id: editingSaleId}, saleData);
+      cancelSaleEdit();
+      save();
+      populateCarrierSelects();
+      renderCarriers();
+      renderDashboard();
+      renderSalesTable();
+      document.querySelector('.tab-btn[data-tab="saleslog"]').click();
+      return;
+    }
+
+    state.sales.push(Object.assign({id: uid()}, saleData));
     save();
     clearForm();
     clearDraft();
@@ -2002,6 +2064,9 @@ function setUserDataBlob_(email, json) {
               ${["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"].map(opt=>`<option ${opt===s.status?'selected':''}>${opt}</option>`).join("")}
             </select></td>
         <td class="row-actions">
+          <button class="icon-btn sale-edit" data-id="${s.id}" title="Edit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </button>
           <button class="icon-btn backend-toggle-btn" data-id="${s.id}" title="Toggle backend received">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
           </button>
@@ -2025,14 +2090,64 @@ function setUserDataBlob_(email, json) {
         if(sale){ sale.backendReceived = !sale.backendReceived; save(); renderSalesTable(); renderDashboard(); }
       });
     });
+    body.querySelectorAll(".sale-edit").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        startEditSale(btn.dataset.id);
+      });
+    });
     body.querySelectorAll(".sale-del").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         if(!confirm("Delete this sale?")) return;
         state.sales = state.sales.filter(s=>s.id!==btn.dataset.id);
+        if(editingSaleId===btn.dataset.id) cancelSaleEdit();
         save(); renderSalesTable(); renderDashboard();
       });
     });
   }
+
+  /* ---------------- Edit an existing sale ---------------- */
+  let editingSaleId = null;
+  function startEditSale(id){
+    const sale = state.sales.find(s=>s.id===id);
+    if(!sale) return;
+    editingSaleId = id;
+    document.querySelector('.tab-btn[data-tab="logsale"]').click();
+    const c = carrierById(sale.carrierId);
+    document.getElementById("f_client").value = sale.client || "";
+    document.getElementById("f_date").value = sale.date || "";
+    document.getElementById("f_effectiveDate").value = sale.effectiveDate || "";
+    document.getElementById("f_carrier_text").value = c ? c.name : "";
+    document.getElementById("f_premType").value = sale.premType || "monthly";
+    document.getElementById("f_premium").value = sale.premium || "";
+    document.getElementById("f_comp").value = sale.comp || "";
+    document.getElementById("f_advance").value = sale.advance || "";
+    document.getElementById("f_advanceCap").value = sale.advanceCap || "";
+    document.getElementById("f_status").value = sale.status || "Submitted";
+    document.getElementById("f_backendReceived").checked = !!sale.backendReceived;
+    document.getElementById("f_referralSale").value = sale.referralSale || "No";
+    document.getElementById("f_referralsCollected").value = sale.referralsCollected || "No";
+    document.getElementById("f_reset").value = sale.reset || "No";
+    document.getElementById("f_notes").value = sale.notes || "";
+    recalc();
+    document.getElementById("logSaleTitle").textContent = "Edit Sale";
+    document.getElementById("logSaleSub").textContent = "Update this application. Comp, advance, and backend recalculate automatically.";
+    document.getElementById("submitSaleBtn").textContent = "Update sale";
+    document.getElementById("cancelSaleEditBtn").classList.remove("hidden");
+  }
+  function cancelSaleEdit(){
+    editingSaleId = null;
+    document.getElementById("logSaleTitle").textContent = "Log a Sale";
+    document.getElementById("logSaleSub").textContent = "Enter the application. Comp, advance, and backend calculate automatically.";
+    document.getElementById("submitSaleBtn").textContent = "Save sale";
+    document.getElementById("cancelSaleEditBtn").classList.add("hidden");
+    document.getElementById("f_carrier_text").value = "";
+    document.getElementById("f_comp").value = "";
+    document.getElementById("f_advance").value = "";
+    document.getElementById("f_advanceCap").value = "";
+    clearForm();
+    clearDraft();
+  }
+  document.getElementById("cancelSaleEditBtn").addEventListener("click", cancelSaleEdit);
 
   /* ---------------- Dashboard ---------------- */
   document.querySelectorAll(".period-tab").forEach(btn=>{
