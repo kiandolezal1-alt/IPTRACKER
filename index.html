@@ -541,7 +541,7 @@
 
       <div class="panel">
         <h2 id="periodPanelTitle">This Month</h2>
-        <p class="desc">AP submitted, commission earned, deposits collected, and lead spend for the selected period.</p>
+        <p class="desc">AP submitted, commission earned, expected vs. actual deposits, and lead spend for the selected period.</p>
         <div class="calc-strip" style="margin-top:0;grid-template-columns:repeat(4,1fr);">
           <div class="calc-item"><div class="k">AP Submitted</div><div class="v" id="pmAP">$0</div></div>
           <div class="calc-item"><div class="k">Applications</div><div class="v" id="pmCount">0</div></div>
@@ -549,7 +549,9 @@
           <div class="calc-item"><div class="k">Issued &amp; Paid</div><div class="v" id="pmIssued">0</div></div>
           <div class="calc-item"><div class="k">Commission Earned</div><div class="v" id="pmComm">$0</div></div>
           <div class="calc-item"><div class="k">Advance Paid</div><div class="v" id="pmAdvance">$0</div></div>
-          <div class="calc-item"><div class="k">Deposits Received</div><div class="v" id="pmDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Expected Deposits <span class="hint">(from comp)</span></div><div class="v" id="pmExpectedDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Actual Deposits <span class="hint">(logged)</span></div><div class="v" id="pmDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Deposit Gap</div><div class="v" id="pmDepositGap">$0</div></div>
           <div class="calc-item"><div class="k">Lead Spend</div><div class="v" id="pmLeadSpend">$0</div></div>
           <div class="calc-item"><div class="k">Cost / Sale</div><div class="v" id="pmCostPerSale">$0</div></div>
           <div class="calc-item"><div class="k">Cost / Lead</div><div class="v" id="pmCostPerLead">$0</div></div>
@@ -606,13 +608,29 @@
           <div class="value" id="tileLapsed">$0</div>
           <div class="sub" id="tileLapsedCount">0 policies</div>
         </div>
+        <div class="tile" style="--accent:var(--purple);--accent-soft:var(--purple-soft);">
+          <div class="tile-head">
+            <div class="label">Expected Deposits<br>(All-Time, from comp)</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg></div>
+          </div>
+          <div class="value" id="tileExpectedDepositsAll">$0</div>
+          <div class="sub">Advance + backend on issued policies</div>
+        </div>
         <div class="tile" style="--accent:var(--blue);--accent-soft:var(--blue-soft);">
           <div class="tile-head">
-            <div class="label">Total Deposited<br>(All-Time)</div>
+            <div class="label">Actual Deposits<br>(All-Time, logged)</div>
             <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg></div>
           </div>
           <div class="value" id="tileDepositsAll">$0</div>
           <div class="sub" id="tileDepositsCount">0 deposits logged</div>
+        </div>
+        <div class="tile" style="--accent:var(--amber);--accent-soft:var(--amber-soft);">
+          <div class="tile-head">
+            <div class="label">Deposit Gap<br>(All-Time)</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16v.01"/></svg></div>
+          </div>
+          <div class="value" id="tileDepositGapAll">$0</div>
+          <div class="sub">Expected minus actual</div>
         </div>
         <div class="tile" style="--accent:var(--red);--accent-soft:var(--red-soft);">
           <div class="tile-head">
@@ -834,7 +852,9 @@
           <div class="calc-item"><div class="k">Average AP / Sale</div><div class="v" id="calAvgAP">$0</div></div>
           <div class="calc-item"><div class="k">Issued &amp; Paid</div><div class="v" id="calIssued">0</div></div>
           <div class="calc-item"><div class="k">Commission Earned</div><div class="v" id="calComm">$0</div></div>
-          <div class="calc-item"><div class="k">Deposits</div><div class="v" id="calDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Expected Deposits</div><div class="v" id="calExpectedDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Actual Deposits</div><div class="v" id="calDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Deposit Gap</div><div class="v" id="calDepositGap">$0</div></div>
           <div class="calc-item"><div class="k">Lead Spend</div><div class="v" id="calLeadSpend">$0</div></div>
           <div class="calc-item"><div class="k">ROI</div><div class="v" id="calROI">—</div></div>
         </div>
@@ -888,13 +908,21 @@
       </div>
 
       <div class="panel">
-        <h2>Deposit history</h2>
+        <h2>Expected vs. actual</h2>
+        <p class="desc">Expected deposits are calculated automatically from each Issued &amp; Paid sale's advance + backend commission. Actual deposits are whatever you log below.</p>
         <div class="calc-strip" style="margin-top:0;">
-          <div class="calc-item"><div class="k">Total Deposited</div><div class="v" id="depTotalAll">$0</div></div>
-          <div class="calc-item"><div class="k">This Month</div><div class="v" id="depTotalMonth">$0</div></div>
+          <div class="calc-item"><div class="k">Expected (All-Time)</div><div class="v" id="depExpectedAll">$0</div></div>
+          <div class="calc-item"><div class="k">Actual (All-Time)</div><div class="v" id="depTotalAll">$0</div></div>
+          <div class="calc-item"><div class="k">Gap (All-Time)</div><div class="v" id="depGapAll">$0</div></div>
+          <div class="calc-item"><div class="k">Expected (This Month)</div><div class="v" id="depExpectedMonth">$0</div></div>
+          <div class="calc-item"><div class="k">Actual (This Month)</div><div class="v" id="depTotalMonth">$0</div></div>
           <div class="calc-item"><div class="k">Deposits Logged</div><div class="v" id="depCountAll">0</div></div>
         </div>
-        <div style="overflow-x:auto;margin-top:18px;">
+      </div>
+
+      <div class="panel">
+        <h2>Deposit history</h2>
+        <div style="overflow-x:auto;margin-top:0;">
         <table>
           <thead><tr><th>Date</th><th>Amount</th><th>Source</th><th>Notes</th><th></th></tr></thead>
           <tbody id="depositsTableBody"></tbody>
@@ -1703,14 +1731,19 @@ function setUserDataBlob_(email, json) {
     const avgAP = count ? totalAP/count : 0;
     const totalCommission = issued.reduce((a,s)=>a+s.commission,0);
     const advancePaid = issued.reduce((a,s)=>a+s.advanceAmt,0);
+    // Expected deposits: what comp math says should hit your account for issued policies —
+    // the advance (paid on issue) plus backend (paid out once earned) for every Issued & Paid sale.
+    const expectedDeposits = issued.reduce((a,s)=>a+s.advanceAmt+s.backendAmt,0);
+    // Actual deposits: whatever you've manually logged as having actually landed.
     const deposits = state.deposits.filter(d=>dateInRange(d.date,start,end)).reduce((a,d)=>a+(d.amount||0),0);
+    const depositGap = expectedDeposits - deposits;
     const spendEntries = state.leadSpend.filter(l=>dateInRange(l.date,start,end));
     const leadSpend = spendEntries.reduce((a,l)=>a+(l.amount||0),0);
     const leadsCount = spendEntries.reduce((a,l)=>a+(l.leads||0),0);
     const costPerSale = count ? leadSpend/count : 0;
     const costPerLead = leadsCount ? leadSpend/leadsCount : 0;
     const roi = leadSpend>0 ? ((totalCommission-leadSpend)/leadSpend*100) : null;
-    return {totalAP, count, avgAP, totalCommission, advancePaid, deposits, leadSpend, leadsCount, costPerSale, costPerLead, roi, issuedCount: issued.length};
+    return {totalAP, count, avgAP, totalCommission, advancePaid, expectedDeposits, deposits, depositGap, leadSpend, leadsCount, costPerSale, costPerLead, roi, issuedCount: issued.length};
   }
   function fmtROI(roi){
     if(roi===null || !isFinite(roi)) return "—";
@@ -2173,11 +2206,20 @@ function setUserDataBlob_(email, json) {
     document.getElementById("pmIssued").textContent = m.issuedCount;
     document.getElementById("pmComm").textContent = fmtMoney(m.totalCommission);
     document.getElementById("pmAdvance").textContent = fmtMoney(m.advancePaid);
+    document.getElementById("pmExpectedDeposits").textContent = fmtMoney(m.expectedDeposits);
     document.getElementById("pmDeposits").textContent = fmtMoney(m.deposits);
+    setGapText("pmDepositGap", m.depositGap);
     document.getElementById("pmLeadSpend").textContent = fmtMoney(m.leadSpend);
     document.getElementById("pmCostPerSale").textContent = fmtMoney(m.costPerSale);
     document.getElementById("pmCostPerLead").textContent = fmtMoney(m.costPerLead);
     document.getElementById("pmROI").textContent = fmtROI(m.roi);
+  }
+  function setGapText(id, gap){
+    const el = document.getElementById(id);
+    if(!el) return;
+    if(gap > 0.005){ el.textContent = fmtMoney(gap) + " owed"; el.style.color = "var(--amber)"; }
+    else if(gap < -0.005){ el.textContent = fmtMoney(Math.abs(gap)) + " extra"; el.style.color = "var(--green)"; }
+    else { el.textContent = fmtMoney(0); el.style.color = ""; }
   }
 
   function renderDashboard(){
@@ -2207,8 +2249,11 @@ function setUserDataBlob_(email, json) {
     document.getElementById("tileLapsedCount").textContent = lapsed.length + " polic" + (lapsed.length===1?"y":"ies");
 
     const depTotal = state.deposits.reduce((a,d)=>a+(d.amount||0),0);
+    const expectedDepAll = issued.reduce((a,s)=>a+s.advanceAmt+s.backendAmt,0);
+    document.getElementById("tileExpectedDepositsAll").textContent = fmtMoney(expectedDepAll);
     document.getElementById("tileDepositsAll").textContent = fmtMoney(depTotal);
     document.getElementById("tileDepositsCount").textContent = state.deposits.length + " deposit" + (state.deposits.length===1?"":"s") + " logged";
+    setGapText("tileDepositGapAll", expectedDepAll - depTotal);
 
     const lsTotal = state.leadSpend.reduce((a,l)=>a+(l.amount||0),0);
     const lsLeads = state.leadSpend.reduce((a,l)=>a+(l.leads||0),0);
@@ -2276,7 +2321,9 @@ function setUserDataBlob_(email, json) {
     document.getElementById("calAvgAP").textContent = fmtMoney(m.avgAP);
     document.getElementById("calIssued").textContent = m.issuedCount;
     document.getElementById("calComm").textContent = fmtMoney(m.totalCommission);
+    document.getElementById("calExpectedDeposits").textContent = fmtMoney(m.expectedDeposits);
     document.getElementById("calDeposits").textContent = fmtMoney(m.deposits);
+    setGapText("calDepositGap", m.depositGap);
     document.getElementById("calLeadSpend").textContent = fmtMoney(m.leadSpend);
     document.getElementById("calROI").textContent = fmtROI(m.roi);
 
@@ -2322,10 +2369,16 @@ function setUserDataBlob_(email, json) {
     const body = document.getElementById("depositsTableBody");
     const empty = document.getElementById("depositsEmptyState");
     body.innerHTML = "";
-    document.getElementById("depTotalAll").textContent = fmtMoney(state.deposits.reduce((a,d)=>a+(d.amount||0),0));
+    const allTimeAll = getPeriodRange("all");
+    const mAll = computeMetrics(allTimeAll.start, allTimeAll.end);
+    document.getElementById("depExpectedAll").textContent = fmtMoney(mAll.expectedDeposits);
+    document.getElementById("depTotalAll").textContent = fmtMoney(mAll.deposits);
+    setGapText("depGapAll", mAll.depositGap);
     document.getElementById("depCountAll").textContent = state.deposits.length;
     const {start, end} = getPeriodRange("month");
-    document.getElementById("depTotalMonth").textContent = fmtMoney(state.deposits.filter(d=>dateInRange(d.date,start,end)).reduce((a,d)=>a+(d.amount||0),0));
+    const mMonth = computeMetrics(start, end);
+    document.getElementById("depExpectedMonth").textContent = fmtMoney(mMonth.expectedDeposits);
+    document.getElementById("depTotalMonth").textContent = fmtMoney(mMonth.deposits);
 
     if(all.length===0){ empty.classList.remove("hidden"); return; }
     empty.classList.add("hidden");
