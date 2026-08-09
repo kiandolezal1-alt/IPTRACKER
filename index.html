@@ -1509,7 +1509,10 @@ function setUserDataBlob_(email, json) {
       }catch(e){
         lastCloudSyncOk = false;
         updateCloudStatusUI("error");
-        pushQueued = true; // retry the latest state once we're able to
+        // Do NOT set pushQueued here — a persistent failure (bad deployment, network outage,
+        // quota limit) would otherwise cause this to recurse into itself forever, hammering
+        // the server nonstop. The 20s autosave heartbeat (or the next real edit) will naturally
+        // retry via a fresh save() call instead.
         console.warn("Cloud sync push failed", e);
       }
       pushPromise = null;
@@ -1521,9 +1524,23 @@ function setUserDataBlob_(email, json) {
     return pushPromise;
   }
 
-  async function pullFromCloud(showSyncing){
+  async function pullFromCloud(showSyncing, force){
     if(!cloudConfigured || !currentAuth.token) return false;
     if(pushPromise) await pushPromise; // never let a pull overwrite a not-yet-synced local change
+    if(!force){
+      if(lastCloudSyncOk === false){
+        // Background/automatic pull: if the last push attempt failed, local state is ahead of
+        // the server and hasn't been saved up there yet. Pulling now would silently overwrite
+        // those unsynced local changes with stale server data — refuse, and let the next
+        // successful push (retried by the autosave heartbeat) catch the server up instead.
+        return false;
+      }
+      if(Date.now() - lastLocalSaveAt < 15000){
+        // Also skip if a local change was made very recently — its push may not have started
+        // or registered as in-flight yet, so a pull right now could still race it.
+        return false;
+      }
+    }
     if(showSyncing) updateCloudStatusUI("syncing");
     try{
       const res = await fetch(SHEET_API_URL + "?action=getData&token=" + encodeURIComponent(currentAuth.token), {cache:"no-store"});
@@ -1736,8 +1753,10 @@ function setUserDataBlob_(email, json) {
     state.leadSpend.forEach(l=>{ l.date = fix(l.date); });
     return changed;
   }
+  let lastLocalSaveAt = 0;
   function save(){
     let ok = true;
+    lastLocalSaveAt = Date.now();
     try{
       const json = JSON.stringify(state);
       localStorage.setItem(STORAGE_KEY, json);
@@ -2940,7 +2959,11 @@ function setUserDataBlob_(email, json) {
       alert("Sign in first (see the Settings tab) to sync your data.");
       return;
     }
-    const okPull = await pullFromCloud(true);
+    if(lastCloudSyncOk === false){
+      const proceed = confirm("The last sync to the cloud failed, so this device may have changes the server doesn't have yet. Syncing now will overwrite this device's data with whatever's on the server, and any unsynced local changes will be lost. Continue anyway?");
+      if(!proceed) return;
+    }
+    const okPull = await pullFromCloud(true, true);
     if(okPull){ save(); renderAll(); recalc(); }
   });
 
