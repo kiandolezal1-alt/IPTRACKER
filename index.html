@@ -6,6 +6,7 @@
 <title>Production &amp; Commission Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
   :root{
     --navy:#F5F6F8;
@@ -706,6 +707,27 @@
             <label style="text-transform:none;font-weight:500;font-size:13px;">Backend already received</label>
           </div>
           <div class="field">
+            <label>Referral sale?</label>
+            <select id="f_referralSale">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Referrals collected?</label>
+            <select id="f_referralsCollected">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Reset?</label>
+            <select id="f_reset">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="field span-4">
             <label>Notes <span class="hint">optional</span></label>
             <input id="f_notes" type="text" placeholder="Face amount, referral, etc.">
           </div>
@@ -763,6 +785,9 @@
               <th>Advance %</th>
               <th>Advance $</th>
               <th>Backend $</th>
+              <th>Referral</th>
+              <th>Ref. Collected</th>
+              <th>Reset</th>
               <th>Status</th>
               <th></th>
             </tr>
@@ -1196,27 +1221,29 @@ function setUserDataBlob_(email, json) {
       <div class="panel">
         <h2>Google Sheet import template for sales</h2>
         <p class="desc">
-          Download this template, open it in Google Sheets (or Excel), paste in your sales, then upload it below to import.
-          Each row is matched to an existing carrier by name (case-insensitive) — if found, that carrier's saved comp/advance/cap
-          rates are used automatically unless you fill in your own values on the row. Unmatched carriers are created for you.
+          Download this template as an Excel file, open it in Google Sheets or Excel, paste in your sales, download/export it
+          back as .xlsx or .csv, then upload it below to import. Each row is matched to an existing carrier by name
+          (case-insensitive) — if found, that carrier's saved comp/advance/cap rates are used automatically. Unmatched
+          carriers are created for you.
         </p>
         <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:16px;">
-          <button class="btn btn-outline" id="downloadSalesTemplateBtn">Download template (.csv)</button>
+          <button class="btn btn-outline" id="downloadSalesTemplateBtn">Download template (.xlsx)</button>
         </div>
         <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:12px;">
           <input type="file" id="importCsvFile" accept=".csv,text/csv">
           <button class="btn btn-gold" id="importCsvBtn">Import CSV</button>
         </div>
         <div id="csvImportResult" style="font-size:12.5px;min-height:16px;"></div>
+        <p class="desc" style="margin-top:4px;">Importing a spreadsheet from Google Sheets/Excel? Use <strong>File → Download → Comma Separated Values (.csv)</strong> first, then upload the .csv here.</p>
         <details style="margin-top:12px;">
           <summary style="cursor:pointer;color:var(--muted);font-size:12.5px;">Show accepted column headers</summary>
           <p class="desc" style="margin-top:8px;line-height:1.7;">
-            Recognized headers (case-insensitive, order doesn't matter): <code>Date</code>, <code>Effective Date</code>,
-            <code>Client</code>, <code>Carrier</code>, <code>Premium Type</code> (Monthly/Annual),
-            <code>Premium</code>, <code>Comp %</code>, <code>Advance %</code>, <code>Advance Cap</code>, <code>Status</code>,
-            <code>Backend Received</code> (Yes/No), <code>Notes</code>. Only <strong>Client</strong>, <strong>Carrier</strong>,
-            and <strong>Premium</strong> are required — everything else is optional and falls back to carrier defaults.
-            This matches the same format the "Download sales CSV" button above produces, so round-tripping just works.
+            Recognized headers (case-insensitive, order doesn't matter): <code>Carrier</code>, <code>Effective Date</code>,
+            <code>Annualized Premium</code> (or <code>Premium</code> + <code>Premium Type</code>), <code>Referral Sale</code> (Yes/No),
+            <code>Referrals Collected</code> (Yes/No), <code>Reset</code> (Yes/No), <code>Submit Date</code>, plus optional
+            <code>Client</code>, <code>Comp %</code>, <code>Advance %</code>, <code>Advance Cap</code>, <code>Status</code>,
+            <code>Backend Received</code> (Yes/No), <code>Notes</code>. Only <strong>Carrier</strong> and a premium amount are
+            required — everything else is optional and falls back to carrier defaults.
           </p>
         </details>
       </div>
@@ -1829,6 +1856,9 @@ function setUserDataBlob_(email, json) {
     document.getElementById("f_effectiveDate").value="";
     document.getElementById("f_status").value="Submitted";
     document.getElementById("f_backendReceived").checked=false;
+    document.getElementById("f_referralSale").value="No";
+    document.getElementById("f_referralsCollected").value="No";
+    document.getElementById("f_reset").value="No";
     document.getElementById("f_notes").value="";
     setDateChips();
     recalc();
@@ -1836,7 +1866,7 @@ function setUserDataBlob_(email, json) {
 
   // ---- Draft autosave for the Log a Sale form (protects in-progress typing, not just saved sales) ----
   const DRAFT_KEY = "ipt_draft_v2";
-  const draftFieldIds = ["f_client","f_date","f_effectiveDate","f_carrier_text","f_premType","f_premium","f_comp","f_advance","f_advanceCap","f_status","f_backendReceived","f_notes"];
+  const draftFieldIds = ["f_client","f_date","f_effectiveDate","f_carrier_text","f_premType","f_premium","f_comp","f_advance","f_advanceCap","f_status","f_backendReceived","f_referralSale","f_referralsCollected","f_reset","f_notes"];
   function saveDraft(){
     const draft = {};
     draftFieldIds.forEach(id=>{
@@ -1912,6 +1942,9 @@ function setUserDataBlob_(email, json) {
       ap, commission, advanceAmt, backendAmt,
       status: document.getElementById("f_status").value,
       backendReceived: document.getElementById("f_backendReceived").checked,
+      referralSale: document.getElementById("f_referralSale").value,
+      referralsCollected: document.getElementById("f_referralsCollected").value,
+      reset: document.getElementById("f_reset").value,
       notes: document.getElementById("f_notes").value.trim()
     });
     save();
@@ -1962,6 +1995,9 @@ function setUserDataBlob_(email, json) {
         <td class="num">${s.advance}%</td>
         <td class="num">${fmtMoney(s.advanceAmt)}${s.capped?' <span style="color:var(--amber);font-size:10px;" title="Advance capped by carrier">CAP</span>':''}</td>
         <td class="num">${fmtMoney(s.backendAmt)}${s.backendReceived?' ✓':''}</td>
+        <td>${s.referralSale==="Yes"?"Yes":"No"}</td>
+        <td>${s.referralsCollected==="Yes"?"Yes":"No"}</td>
+        <td>${s.reset==="Yes"?"Yes":"No"}</td>
         <td><select class="status-select" data-id="${s.id}" style="width:auto;padding:4px 8px;font-size:11px;">
               ${["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"].map(opt=>`<option ${opt===s.status?'selected':''}>${opt}</option>`).join("")}
             </select></td>
@@ -2273,21 +2309,40 @@ function setUserDataBlob_(email, json) {
   }
 
   document.getElementById("exportCsvBtn").addEventListener("click", ()=>{
-    const header = ["Date","Effective Date","Client","Carrier","Premium Type","Premium","AP","Comp %","Advance %","Advance Cap","Commission","Advance $","Capped","Backend $","Backend Received","Status","Notes"];
+    const header = ["Date","Effective Date","Client","Carrier","Premium Type","Premium","AP","Comp %","Advance %","Advance Cap","Commission","Advance $","Capped","Backend $","Backend Received","Referral Sale","Referrals Collected","Reset","Status","Notes"];
     const rows = state.sales.map(s=>{
       const c = carrierById(s.carrierId);
-      return [s.date, s.effectiveDate||"", s.client, c?c.name:"", s.premType, s.premium, s.ap.toFixed(2), s.comp, s.advance, s.advanceCap||0, s.commission.toFixed(2), s.advanceAmt.toFixed(2), s.capped?"Yes":"No", s.backendAmt.toFixed(2), s.backendReceived?"Yes":"No", s.status, s.notes||""]
+      return [s.date, s.effectiveDate||"", s.client, c?c.name:"", s.premType, s.premium, s.ap.toFixed(2), s.comp, s.advance, s.advanceCap||0, s.commission.toFixed(2), s.advanceAmt.toFixed(2), s.capped?"Yes":"No", s.backendAmt.toFixed(2), s.backendReceived?"Yes":"No", s.referralSale||"No", s.referralsCollected||"No", s.reset||"No", s.status, s.notes||""]
         .map(csvCell);
     });
     const csv = [header.join(","), ...rows.map(r=>r.join(","))].join("\n");
     downloadBlob(new Blob([csv],{type:"text/csv"}), "production-tracker-export.csv");
   });
 
+  // ---- Styled .xlsx template download (matches the Carrier / Effective Date / Annualized
+  // Premium / Referral Sale / Referrals Collected / Reset / Submit Date layout) ----
+  async function downloadStyledXlsx(filename, sheetName, headers, rows, colWidths){
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(sheetName || "Sheet1");
+    ws.addRow(headers);
+    rows.forEach(r => ws.addRow(r));
+    ws.columns.forEach((col, i)=>{ col.width = (colWidths && colWidths[i]) || 16; });
+    const headerRow = ws.getRow(1);
+    headerRow.eachCell(cell=>{
+      cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:"FFDCE7F5"} };
+      cell.font = { bold:true, color:{argb:"FF1F2937"} };
+      cell.alignment = { vertical:"middle" };
+      cell.border = { bottom:{style:"thin", color:{argb:"FFB7C6DE"}} };
+    });
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    downloadBlob(blob, filename);
+  }
+
   document.getElementById("downloadSalesTemplateBtn").addEventListener("click", ()=>{
-    const header = ["Date","Effective Date","Client","Carrier","Premium Type","Premium","Comp %","Advance %","Advance Cap","Status","Backend Received","Notes"];
-    const example = ["2026-01-15","2026-02-01","Jane Smith","Mutual of Omaha","monthly","120","80","75","","Submitted","No","Term life, referral"];
-    const csv = [header.join(","), example.map(csvCell).join(",")].join("\n");
-    downloadBlob(new Blob([csv],{type:"text/csv"}), "sales-import-template.csv");
+    const headers = ["Carrier","Effective Date","Annualized Premium","Referral Sale","Referrals Collected","Reset","Submit Date"];
+    const example = ["Liberty Bankers","08/14/2026",1163.00,"No","No","No","08/08/2026"];
+    downloadStyledXlsx("sales-import-template.xlsx", "Sales", headers, [example], [18,14,18,13,17,9,13]);
   });
 
   document.getElementById("downloadLeadSpendTemplateBtn").addEventListener("click", ()=>{
@@ -2354,18 +2409,21 @@ function setUserDataBlob_(email, json) {
 
   function normalizeCsvHeader(h){ return (h||"").toString().trim().toLowerCase().replace(/[^a-z0-9]/g,""); }
   const CSV_HEADER_MAP = {
-    date:"date", datesubmitted:"date", submitteddate:"date",
+    date:"date", datesubmitted:"date", submitteddate:"date", submitdate:"date",
     effectivedate:"effectiveDate", effdate:"effectiveDate",
     client:"client", clientname:"client", name:"client", insured:"client",
     carrier:"carrier", carriername:"carrier",
     premiumtype:"premiumType", premtype:"premiumType",
     premium:"premium", premiumamount:"premium", monthlypremium:"premium", amount:"premium",
-    ap:"ap", annualpremium:"ap",
+    ap:"ap", annualpremium:"ap", annualizedpremium:"ap",
     comp:"comp", comppercent:"comp", commissionpercent:"comp", comprate:"comp",
     advance:"advance", advancepercent:"advance", advancerate:"advance",
     advancecap:"advanceCap", cap:"advanceCap",
     status:"status",
     backendreceived:"backendReceived", backendrecvd:"backendReceived",
+    referralsale:"referralSale",
+    referralscollected:"referralsCollected", referralcollected:"referralsCollected",
+    reset:"reset",
     notes:"notes", note:"notes"
   };
   const VALID_STATUSES = ["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"];
@@ -2382,9 +2440,9 @@ function setUserDataBlob_(email, json) {
       const rows = parseCSV(text);
       if(rows.length < 2){ resultEl.style.color = "var(--red)"; resultEl.textContent = "No data rows found in that file."; return; }
       const headerKeys = rows[0].map(h => CSV_HEADER_MAP[normalizeCsvHeader(h)] || null);
-      if(!headerKeys.includes("client") || !headerKeys.includes("carrier") || !headerKeys.includes("premium")){
+      if(!headerKeys.includes("carrier") || (!headerKeys.includes("premium") && !headerKeys.includes("ap"))){
         resultEl.style.color = "var(--red)";
-        resultEl.textContent = "Missing required columns — need at least Client, Carrier, and Premium.";
+        resultEl.textContent = "Missing required columns — need at least Carrier and Premium (or Annualized Premium).";
         return;
       }
 
@@ -2395,7 +2453,7 @@ function setUserDataBlob_(email, json) {
         const rec = {};
         headerKeys.forEach((key, idx)=>{ if(key) rec[key] = (raw[idx]||"").trim(); });
 
-        const clientName = rec.client || "";
+        const clientName = rec.client || "(no name)";
         const carrierName = rec.carrier || "";
         let premium = parseFloat(rec.premium);
         let premType = (rec.premiumType||"monthly").toLowerCase().indexOf("annual") > -1 ? "annual" : "monthly";
@@ -2403,7 +2461,7 @@ function setUserDataBlob_(email, json) {
           const apVal = parseFloat(rec.ap);
           if(!isNaN(apVal)){ premium = apVal; premType = "annual"; }
         }
-        if(!clientName || !carrierName || isNaN(premium)){ skipped++; continue; }
+        if(!carrierName || isNaN(premium)){ skipped++; continue; }
 
         let carrier = carrierByName(carrierName);
         if(!carrier){
@@ -2437,6 +2495,9 @@ function setUserDataBlob_(email, json) {
           ap: calc.ap, commission: calc.commission, advanceAmt: calc.advanceAmt, backendAmt: calc.backendAmt,
           status,
           backendReceived: /^(y|yes|true|1)$/i.test(rec.backendReceived||""),
+          referralSale: /^(y|yes|true|1)$/i.test(rec.referralSale||"") ? "Yes" : "No",
+          referralsCollected: /^(y|yes|true|1)$/i.test(rec.referralsCollected||"") ? "Yes" : "No",
+          reset: /^(y|yes|true|1)$/i.test(rec.reset||"") ? "Yes" : "No",
           notes: rec.notes || ""
         });
         imported++;
