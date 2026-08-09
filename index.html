@@ -1507,7 +1507,7 @@ function setUserDataBlob_(email, json) {
       }
       if(json.data && (json.data.carriers || json.data.sales || json.data.agentName || json.data.deposits || json.data.leadSpend)){
         state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]}, json.data);
-        normalizeAdvanceRates();
+        normalizeAdvanceRates(); normalizeStoredDates();
       }
       lastCloudSyncOk = true;
       updateCloudStatusUI("ok");
@@ -1661,7 +1661,7 @@ function setUserDataBlob_(email, json) {
     if(!state.leadSpend) state.leadSpend = [];
     if(!state.carriers) state.carriers = [];
     if(!state.sales) state.sales = [];
-    const normalized = normalizeAdvanceRates();
+    const normalized = normalizeAdvanceRates() | normalizeStoredDates();
     if(migrated){
       // Persist immediately under the current key so the recovered data survives from now on,
       // and so this migration only has to run once.
@@ -1688,6 +1688,25 @@ function setUserDataBlob_(email, json) {
         changed = true;
       }
     });
+    return changed;
+  }
+  // Dates must be stored as ISO (YYYY-MM-DD) for date-range filtering (Calendar, period
+  // metrics, deposit gap, ROI) to work. Sales/deposits/lead spend imported before this was
+  // enforced, or from a spreadsheet using MM/DD/YYYY, get corrected here automatically.
+  function normalizeStoredDates(){
+    let changed = false;
+    function fix(str){
+      if(!str) return str;
+      const n = normalizeDateString(str);
+      if(n !== str) changed = true;
+      return n;
+    }
+    state.sales.forEach(s=>{
+      s.date = fix(s.date);
+      s.effectiveDate = fix(s.effectiveDate);
+    });
+    state.deposits.forEach(d=>{ d.date = fix(d.date); });
+    state.leadSpend.forEach(l=>{ l.date = fix(l.date); });
     return changed;
   }
   function save(){
@@ -1763,9 +1782,29 @@ function setUserDataBlob_(email, json) {
     }
     return {start, end};
   }
+  // Accepts ISO (2026-08-14), US (8/14/2026 or 08/14/2026), or most other common date text,
+  // and normalizes it to ISO YYYY-MM-DD — the only format dateInRange can reliably compare.
+  function normalizeDateString(raw){
+    if(!raw) return "";
+    raw = String(raw).trim();
+    if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw; // already ISO
+    let m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/); // M/D/YYYY or MM/DD/YY
+    if(m){
+      let yyyy = m[3].length === 2 ? "20"+m[3] : m[3];
+      const mm = m[1].padStart(2,"0");
+      const dd = m[2].padStart(2,"0");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    const d = new Date(raw);
+    if(!isNaN(d)){
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+    return raw; // give up — leave as-is rather than lose the original text
+  }
   function dateInRange(dateStr, start, end){
     if(!dateStr) return false;
-    const d = new Date(dateStr+"T00:00:00");
+    const d = new Date(normalizeDateString(dateStr)+"T00:00:00");
+    if(isNaN(d)) return false;
     return d>=start && d<end;
   }
   function computeMetrics(start, end){
@@ -2604,7 +2643,7 @@ function setUserDataBlob_(email, json) {
         const parsed = JSON.parse(reader.result);
         if(!confirm("This will replace your current data with the backup file. Continue?")) return;
         state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]}, parsed);
-        normalizeAdvanceRates();
+        normalizeAdvanceRates(); normalizeStoredDates();
         save();
         agentInput.value = state.agentName || "";
         populateCarrierSelects();
@@ -2721,8 +2760,8 @@ function setUserDataBlob_(email, json) {
 
         state.sales.push({
           id: uid(),
-          date: rec.date || todayISO(),
-          effectiveDate: rec.effectiveDate || "",
+          date: normalizeDateString(rec.date) || todayISO(),
+          effectiveDate: normalizeDateString(rec.effectiveDate) || "",
           client: clientName,
           carrierId: carrier.id,
           premType, premium,
@@ -2789,7 +2828,7 @@ function setUserDataBlob_(email, json) {
         const amount = parseFloat(rec.amount);
         if(!rec.date || isNaN(amount)){ skipped++; continue; }
         state.leadSpend.push({
-          id: uid(), date: rec.date, source: rec.source||"",
+          id: uid(), date: normalizeDateString(rec.date), source: rec.source||"",
           amount, leads: parseInt(rec.leads)||0, notes: rec.notes||""
         });
         imported++;
