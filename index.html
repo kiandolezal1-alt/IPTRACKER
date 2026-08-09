@@ -1073,6 +1073,21 @@
         </div>
       </div>
 
+      <div class="panel hidden" id="cascadeConfirmPanel" style="border-color:var(--gold);">
+        <h2>Update existing sales too?</h2>
+        <p class="desc" id="cascadeConfirmDesc" style="margin-bottom:14px;"></p>
+        <div class="calc-strip" style="margin-top:0;">
+          <div class="calc-item"><div class="k">Sales for this carrier</div><div class="v" id="cascadeSaleCount">0</div></div>
+          <div class="calc-item"><div class="k">New Comp Rate</div><div class="v" id="cascadeNewComp">0%</div></div>
+          <div class="calc-item"><div class="k">Expected Deposits Before</div><div class="v" id="cascadeDepBefore">$0</div></div>
+          <div class="calc-item"><div class="k">Expected Deposits After</div><div class="v" id="cascadeDepAfter">$0</div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-outline" id="cascadeSkipBtn">Just update the carrier</button>
+          <button class="btn btn-gold" id="cascadeApplyBtn">Update carrier + these sales</button>
+        </div>
+      </div>
+
       <div class="panel">
         <h2>Your carriers</h2>
         <div class="carrier-grid" id="carrierGrid"></div>
@@ -1921,6 +1936,34 @@ function setUserDataBlob_(email, json) {
   }
 
   let editingCarrierId = null;
+  let pendingCarrierUpdate = null; // {name, comp, advance, cap, months, linkedSales}
+
+  function finalizeCarrierSave(applyCascade){
+    const p = pendingCarrierUpdate;
+    if(!p) return;
+    const carrier = state.carriers.find(c=>c.id===editingCarrierId);
+    if(carrier){
+      carrier.name = p.name; carrier.comp = p.comp; carrier.advance = p.advance; carrier.cap = p.cap; carrier.months = p.months;
+      if(applyCascade){
+        p.linkedSales.forEach(s=>{
+          const calc = computeCalc(s.premium, s.premType, p.comp, p.advance, p.cap);
+          s.comp = p.comp; s.advance = p.advance; s.advanceCap = p.cap;
+          s.ap = calc.ap; s.commission = calc.commission; s.advanceAmt = calc.advanceAmt; s.backendAmt = calc.backendAmt; s.capped = calc.capped;
+        });
+      }
+    }
+    pendingCarrierUpdate = null;
+    document.getElementById("cascadeConfirmPanel").classList.add("hidden");
+    cancelCarrierEdit();
+    save();
+    renderCarriers();
+    populateCarrierSelects();
+    renderSalesTable();
+    renderDashboard();
+  }
+  document.getElementById("cascadeApplyBtn").addEventListener("click", ()=> finalizeCarrierSave(true));
+  document.getElementById("cascadeSkipBtn").addEventListener("click", ()=> finalizeCarrierSave(false));
+
   document.getElementById("addCarrierBtn").addEventListener("click", ()=>{
     const name = document.getElementById("c_name").value.trim();
     const comp = parseFloat(document.getElementById("c_comp").value);
@@ -1934,23 +1977,31 @@ function setUserDataBlob_(email, json) {
       const carrier = state.carriers.find(c=>c.id===editingCarrierId);
       if(carrier){
         const ratesChanged = carrier.comp!==comp || carrier.advance!==advance || carrier.cap!==cap;
-        carrier.name = name; carrier.comp = comp; carrier.advance = advance; carrier.cap = cap; carrier.months = months;
-
-        if(ratesChanged){
-          const linkedSales = state.sales.filter(s=>s.carrierId===carrier.id);
-          if(linkedSales.length){
-            const applyToAll = confirm(
-              `Update comp/advance/cap on ${linkedSales.length} existing sale${linkedSales.length===1?"":"s"} for ${name} to match these new rates, and recalculate commission/advance/backend? Click Cancel to only change the carrier's default for future sales.`
-            );
-            if(applyToAll){
-              linkedSales.forEach(s=>{
-                const calc = computeCalc(s.premium, s.premType, comp, advance, cap);
-                s.comp = comp; s.advance = advance; s.advanceCap = cap;
-                s.ap = calc.ap; s.commission = calc.commission; s.advanceAmt = calc.advanceAmt; s.backendAmt = calc.backendAmt; s.capped = calc.capped;
-              });
-            }
-          }
+        const linkedSales = state.sales.filter(s=>s.carrierId===carrier.id);
+        if(ratesChanged && linkedSales.length){
+          // Show an in-app confirmation panel instead of window.confirm() — native browser
+          // dialogs are silently blocked inside some sandboxed iframe embeds (e.g. certain
+          // Google Sites configurations), which would make this cascade appear to do nothing.
+          pendingCarrierUpdate = {name, comp, advance, cap, months, linkedSales};
+          const before = linkedSales.filter(s=>s.status==="Issued & Paid").reduce((a,s)=>a+s.advanceAmt+s.backendAmt,0);
+          let afterTotal = 0;
+          linkedSales.forEach(s=>{
+            if(s.status!=="Issued & Paid") return;
+            const calc = computeCalc(s.premium, s.premType, comp, advance, cap);
+            afterTotal += calc.advanceAmt + calc.backendAmt;
+          });
+          document.getElementById("cascadeConfirmDesc").textContent =
+            `You changed ${name}'s rates. Apply the new comp/advance/cap to every existing sale logged under this carrier, and recalculate their commission, advance, and backend amounts?`;
+          document.getElementById("cascadeSaleCount").textContent = linkedSales.length;
+          document.getElementById("cascadeNewComp").textContent = comp + "%";
+          document.getElementById("cascadeDepBefore").textContent = fmtMoney(before);
+          document.getElementById("cascadeDepAfter").textContent = fmtMoney(afterTotal);
+          document.getElementById("cascadeConfirmPanel").classList.remove("hidden");
+          document.getElementById("cascadeConfirmPanel").scrollIntoView({behavior:"smooth", block:"center"});
+          return; // wait for the user to pick a button in the panel
         }
+        // No linked sales, or rates unchanged — nothing to cascade, just save the carrier.
+        carrier.name = name; carrier.comp = comp; carrier.advance = advance; carrier.cap = cap; carrier.months = months;
       }
       cancelCarrierEdit();
     } else {
@@ -1987,6 +2038,8 @@ function setUserDataBlob_(email, json) {
   }
   function cancelCarrierEdit(){
     editingCarrierId = null;
+    pendingCarrierUpdate = null;
+    document.getElementById("cascadeConfirmPanel").classList.add("hidden");
     document.getElementById("c_name").value="";
     document.getElementById("c_comp").value="";
     document.getElementById("c_advance").value=ADVANCE_RATE;
