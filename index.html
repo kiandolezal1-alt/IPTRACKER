@@ -1096,6 +1096,20 @@
           <div>No carriers yet. Add one above to start logging sales.</div>
         </div>
       </div>
+
+      <div class="panel">
+        <h2>Sync all sales to current carrier rates</h2>
+        <p class="desc">
+          If sales were imported without a comp rate (showing 0% or a rate that doesn't match the carrier anymore),
+          use this to bring every sale's comp %, advance %, and cap in line with what's currently set on its carrier —
+          and recalculate commission, advance $, backend $, and Expected Deposits to match. This checks every sale,
+          not just ones tied to a carrier you just edited.
+        </p>
+        <div class="btn-row" style="justify-content:flex-start;">
+          <button class="btn btn-gold" id="syncAllSalesBtn">Sync all sales now</button>
+        </div>
+        <div id="syncAllSalesResult" style="font-size:12.5px;min-height:16px;margin-top:10px;"></div>
+      </div>
     </section>
 
     <!-- ============ DATA ============ -->
@@ -1963,6 +1977,32 @@ function setUserDataBlob_(email, json) {
   }
   document.getElementById("cascadeApplyBtn").addEventListener("click", ()=> finalizeCarrierSave(true));
   document.getElementById("cascadeSkipBtn").addEventListener("click", ()=> finalizeCarrierSave(false));
+
+  document.getElementById("syncAllSalesBtn").addEventListener("click", ()=>{
+    const resultEl = document.getElementById("syncAllSalesResult");
+    let updated = 0, skippedNoCarrier = 0, alreadyMatched = 0;
+    state.sales.forEach(s=>{
+      const carrier = carrierById(s.carrierId);
+      if(!carrier){ skippedNoCarrier++; return; }
+      const cap = carrier.cap || 0;
+      if(s.comp===carrier.comp && s.advance===ADVANCE_RATE && s.advanceCap===cap){
+        alreadyMatched++;
+        return;
+      }
+      const calc = computeCalc(s.premium, s.premType, carrier.comp, ADVANCE_RATE, cap);
+      s.comp = carrier.comp; s.advance = ADVANCE_RATE; s.advanceCap = cap;
+      s.ap = calc.ap; s.commission = calc.commission; s.advanceAmt = calc.advanceAmt; s.backendAmt = calc.backendAmt; s.capped = calc.capped;
+      updated++;
+    });
+    save();
+    renderSalesTable();
+    renderCarriers();
+    renderDashboard();
+    resultEl.style.color = updated > 0 ? "#3DD68C" : "var(--muted)";
+    resultEl.textContent = `Updated ${updated} sale${updated===1?"":"s"} to match their carrier's current rates.` +
+      (alreadyMatched ? ` ${alreadyMatched} already matched.` : "") +
+      (skippedNoCarrier ? ` ${skippedNoCarrier} skipped (no matching carrier found).` : "");
+  });
 
   document.getElementById("addCarrierBtn").addEventListener("click", ()=>{
     const name = document.getElementById("c_name").value.trim();
