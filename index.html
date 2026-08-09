@@ -538,6 +538,21 @@
         <button class="period-tab active" data-period="month">This Month</button>
         <button class="period-tab" data-period="year">This Year</button>
         <button class="period-tab" data-period="all">All Time</button>
+        <button class="period-tab" data-period="custom">Custom Range</button>
+      </div>
+
+      <div class="panel hidden" id="customRangeRow" style="padding:16px 18px;">
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="field" style="min-width:150px;">
+            <label>From</label>
+            <input id="customRangeFrom" type="date">
+          </div>
+          <div class="field" style="min-width:150px;">
+            <label>To</label>
+            <input id="customRangeTo" type="date">
+          </div>
+          <button class="btn btn-gold" id="applyCustomRangeBtn" style="margin-bottom:0;">Apply</button>
+        </div>
       </div>
 
       <div class="panel">
@@ -548,6 +563,7 @@
           <div class="calc-item"><div class="k">Applications</div><div class="v" id="pmCount">0</div></div>
           <div class="calc-item"><div class="k">Average AP / Sale</div><div class="v" id="pmAvgAP">$0</div></div>
           <div class="calc-item"><div class="k">Issued &amp; Paid</div><div class="v" id="pmIssued">0</div></div>
+          <div class="calc-item"><div class="k">Issued &amp; Paid AP</div><div class="v" id="pmIssuedAP">$0</div></div>
           <div class="calc-item"><div class="k">Commission Earned</div><div class="v" id="pmComm">$0</div></div>
           <div class="calc-item"><div class="k">Advance Paid</div><div class="v" id="pmAdvance">$0</div></div>
           <div class="calc-item"><div class="k">Expected Deposits <span class="hint">(from comp)</span></div><div class="v" id="pmExpectedDeposits">$0</div></div>
@@ -576,6 +592,14 @@
           </div>
           <div class="value" id="tileIssuedCount">0</div>
           <div class="sub" id="tileIssuedAP">$0 in AP</div>
+        </div>
+        <div class="tile accent-green">
+          <div class="tile-head">
+            <div class="label">Issued &amp; Paid Business<br>(AP)</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          </div>
+          <div class="value" id="tileIssuedAPMain">$0</div>
+          <div class="sub" id="tileIssuedAPCount">0 policies issued</div>
         </div>
         <div class="tile" style="--accent:var(--gold);--accent-soft:var(--gold-soft);">
           <div class="tile-head">
@@ -1763,6 +1787,8 @@ function setUserDataBlob_(email, json) {
   }
 
   /* ---------------- Date range / metrics helpers ---------------- */
+  let customRangeStart = null; // ISO string, set via the Custom Range picker
+  let customRangeEnd = null;   // ISO string (inclusive end date as picked by the user)
   function getPeriodRange(period, refDate){
     const d = refDate ? new Date(refDate) : new Date();
     let start, end;
@@ -1779,6 +1805,10 @@ function setUserDataBlob_(email, json) {
     } else if(period==="year"){
       start = new Date(d.getFullYear(), 0, 1);
       end = new Date(d.getFullYear()+1, 0, 1);
+    } else if(period==="custom" && customRangeStart){
+      start = new Date(customRangeStart+"T00:00:00");
+      const endBase = customRangeEnd ? new Date(customRangeEnd+"T00:00:00") : new Date(customRangeStart+"T00:00:00");
+      end = new Date(endBase.getFullYear(), endBase.getMonth(), endBase.getDate()+1); // inclusive of the "to" day
     } else {
       start = new Date(1970,0,1);
       end = new Date(2999,0,1);
@@ -1817,6 +1847,7 @@ function setUserDataBlob_(email, json) {
     const count = sales.length;
     const avgAP = count ? totalAP/count : 0;
     const totalCommission = issued.reduce((a,s)=>a+s.commission,0);
+    const issuedAP = issued.reduce((a,s)=>a+s.ap,0);
     const advancePaid = issued.reduce((a,s)=>a+s.advanceAmt,0);
     // Expected deposits: what comp math says should hit your account for issued policies —
     // the advance (paid on issue) plus backend (paid out once earned) for every Issued & Paid sale.
@@ -1830,7 +1861,7 @@ function setUserDataBlob_(email, json) {
     const costPerSale = count ? leadSpend/count : 0;
     const costPerLead = leadsCount ? leadSpend/leadsCount : 0;
     const roi = leadSpend>0 ? ((totalCommission-leadSpend)/leadSpend*100) : null;
-    return {totalAP, count, avgAP, totalCommission, advancePaid, expectedDeposits, deposits, depositGap, leadSpend, leadsCount, costPerSale, costPerLead, roi, issuedCount: issued.length};
+    return {totalAP, count, avgAP, totalCommission, issuedAP, advancePaid, expectedDeposits, deposits, depositGap, leadSpend, leadsCount, costPerSale, costPerLead, roi, issuedCount: issued.length};
   }
   function fmtROI(roi){
     if(roi===null || !isFinite(roi)) return "—";
@@ -2298,19 +2329,45 @@ function setUserDataBlob_(email, json) {
       document.querySelectorAll(".period-tab").forEach(b=>b.classList.remove("active"));
       btn.classList.add("active");
       currentPeriod = btn.dataset.period;
+      const customRow = document.getElementById("customRangeRow");
+      if(currentPeriod==="custom"){
+        customRow.classList.remove("hidden");
+        if(!customRangeStart){
+          // Default the pickers to the current month so there's a sane starting point.
+          const now = new Date();
+          const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+          document.getElementById("customRangeFrom").value = first;
+          document.getElementById("customRangeTo").value = todayISO();
+        }
+      } else {
+        customRow.classList.add("hidden");
+      }
       renderDashboard();
     });
+  });
+  document.getElementById("applyCustomRangeBtn").addEventListener("click", ()=>{
+    const from = document.getElementById("customRangeFrom").value;
+    const to = document.getElementById("customRangeTo").value;
+    if(!from){ alert("Pick a start date."); return; }
+    customRangeStart = from;
+    customRangeEnd = to || from;
+    renderDashboard();
   });
 
   function renderPeriodMetrics(){
     const {start, end} = getPeriodRange(currentPeriod);
     const m = computeMetrics(start, end);
-    const titles = {day:"Today", week:"This Week", month:"This Month", year:"This Year", all:"All Time"};
-    document.getElementById("periodPanelTitle").textContent = titles[currentPeriod] || "Period";
+    const titles = {day:"Today", week:"This Week", month:"This Month", year:"This Year", all:"All Time", custom:"Custom Range"};
+    let title = titles[currentPeriod] || "Period";
+    if(currentPeriod==="custom" && customRangeStart){
+      title = customRangeStart + (customRangeEnd && customRangeEnd!==customRangeStart ? " – " + customRangeEnd : "");
+    }
+    document.getElementById("periodPanelTitle").textContent = title;
     document.getElementById("pmAP").textContent = fmtMoney(m.totalAP);
     document.getElementById("pmCount").textContent = m.count;
     document.getElementById("pmAvgAP").textContent = fmtMoney(m.avgAP);
     document.getElementById("pmIssued").textContent = m.issuedCount;
+    document.getElementById("pmIssuedAP").textContent = fmtMoney(m.issuedAP);
     document.getElementById("pmComm").textContent = fmtMoney(m.totalCommission);
     document.getElementById("pmAdvance").textContent = fmtMoney(m.advancePaid);
     document.getElementById("pmExpectedDeposits").textContent = fmtMoney(m.expectedDeposits);
@@ -2348,6 +2405,8 @@ function setUserDataBlob_(email, json) {
     document.getElementById("tileSubmittedCount").textContent = submitted.length + " application" + (submitted.length===1?"":"s");
     document.getElementById("tileIssuedCount").textContent = issued.length;
     document.getElementById("tileIssuedAP").textContent = fmtMoney(issued.reduce((a,s)=>a+s.ap,0)) + " in AP";
+    document.getElementById("tileIssuedAPMain").textContent = fmtMoney(issued.reduce((a,s)=>a+s.ap,0));
+    document.getElementById("tileIssuedAPCount").textContent = issued.length + " polic" + (issued.length===1?"y":"ies") + " issued";
     document.getElementById("tileAdvance").textContent = fmtMoney(advancePaid);
     document.getElementById("tileBackendPending").textContent = fmtMoney(backendPending);
     document.getElementById("tileBackendPendingCount").textContent = backendPendingCount + " polic" + (backendPendingCount===1?"y":"ies") + " still earning out";
