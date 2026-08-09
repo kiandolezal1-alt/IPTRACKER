@@ -1742,7 +1742,7 @@ function setUserDataBlob_(email, json) {
   document.getElementById("f_carrier_text").addEventListener("change", onCarrierChange);
   function onCarrierChange(){
     const c = carrierByName(document.getElementById("f_carrier_text").value);
-    if(c){
+    if(c && !editingSaleId){
       document.getElementById("f_comp").value = c.comp;
       document.getElementById("f_advance").value = c.advance;
       document.getElementById("f_advanceCap").value = c.cap ? c.cap : "";
@@ -1897,7 +1897,10 @@ function setUserDataBlob_(email, json) {
     capNote.style.color = capped ? "var(--amber)" : "";
   }
 
-  document.getElementById("resetFormBtn").addEventListener("click", ()=>{ clearForm(); clearDraft(); });
+  document.getElementById("resetFormBtn").addEventListener("click", ()=>{
+    if(editingSaleId){ cancelSaleEdit(); }
+    else { clearForm(); clearDraft(); }
+  });
   function clearForm(){
     document.getElementById("f_client").value="";
     document.getElementById("f_premium").value="";
