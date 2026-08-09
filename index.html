@@ -200,7 +200,7 @@
   .tile .icon-badge svg{width:16px;height:16px;}
   .tile .value{
     font-family:'Sora',sans-serif;
-    font-size:28px;font-weight:700;color:#fff;
+    font-size:26px;font-weight:700;color:#fff;
     letter-spacing:-0.5px;
   }
   .tile .sub{font-size:12px;color:var(--slate);margin-top:5px;}
@@ -227,6 +227,17 @@
   .panel .desc{font-size:12.5px;color:var(--muted);margin:0 0 18px;}
 
   .hidden{display:none !important;}
+
+  /* ---------- Period selector ---------- */
+  .period-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .period-tab{
+    all:unset;cursor:pointer;padding:8px 16px;border-radius:20px;
+    background:var(--card);border:1px solid var(--line);color:var(--muted);
+    font-size:12.5px;font-weight:600;font-family:'Sora',sans-serif;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .period-tab:hover{border-color:var(--gold);}
+  .period-tab.active{background:var(--gold);color:#0A0A0D;border-color:var(--gold);}
 
   /* ---------- Forms ---------- */
   .form-grid{
@@ -290,7 +301,7 @@
   .btn-outline:hover{background:#1A1A20;}
   .btn-danger-text{background:transparent;color:var(--red);font-size:12px;padding:6px 10px;}
   .btn-danger-text:hover{background:var(--red-soft);}
-  .btn-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+  .btn-row{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap;}
 
   /* ---------- Table ---------- */
   .table-toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
@@ -335,17 +346,32 @@
   }
   .carrier-card .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
   .carrier-card .name{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--navy);display:flex;align-items:center;gap:8px;}
-  .carrier-stats{display:flex;gap:16px;margin-top:8px;}
+  .carrier-stats{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;}
   .carrier-stats div{font-size:11px;color:var(--muted);}
   .carrier-stats span{display:block;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--navy);font-weight:600;margin-top:2px;}
-  .product-list{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;}
-  .product-row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;background:rgba(255,255,255,0.03);border-radius:7px;padding:6px 9px;}
-  .product-row .pname{font-weight:600;color:var(--navy);}
-  .product-row .prates{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
-  .product-row .icon-btn{width:20px;height:20px;}
 
   .backend-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;}
   .backend-toggle input{width:15px;height:15px;padding:0;}
+
+  /* ---------- Calendar ---------- */
+  .cal-year-nav{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+  .cal-year-nav .yr-btn{
+    all:unset;cursor:pointer;width:32px;height:32px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--card);border:1px solid var(--line);color:var(--navy);
+  }
+  .cal-year-nav .yr-btn:hover{border-color:var(--gold);}
+  .cal-year-nav .yr-label{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--navy);min-width:64px;text-align:center;}
+  .cal-month-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .cal-month{
+    border:1px solid var(--line);border-radius:12px;padding:14px;background:#1A1A20;
+    cursor:pointer;transition:border-color .15s, background .15s;
+  }
+  .cal-month:hover{border-color:var(--gold);}
+  .cal-month.active{border-color:var(--gold);background:var(--gold-soft);}
+  .cal-month-name{font-family:'Sora',sans-serif;font-weight:700;font-size:14px;color:var(--navy);margin-bottom:6px;}
+  .cal-month-count{font-size:11.5px;color:var(--muted);}
+  .cal-month-ap{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--navy);margin-top:4px;}
 
   @media (max-width:980px){
     .app{flex-direction:column;}
@@ -355,10 +381,12 @@
     .form-grid{grid-template-columns:repeat(2,1fr);}
     .calc-strip{grid-template-columns:repeat(2,1fr);}
     .carrier-grid{grid-template-columns:1fr;}
+    .cal-month-grid{grid-template-columns:repeat(2,1fr);}
   }
   @media (max-width:560px){
     .tiles{grid-template-columns:1fr;}
     main{padding:20px 14px 40px;}
+    .cal-month-grid{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -443,6 +471,18 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
         Sales Log
       </button>
+      <button class="tab-btn" data-tab="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Calendar
+      </button>
+      <button class="tab-btn" data-tab="deposits">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+        Deposits
+      </button>
+      <button class="tab-btn" data-tab="leadspend">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        Lead Spend
+      </button>
       <button class="tab-btn" data-tab="carriers">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg>
         Carriers
@@ -490,10 +530,36 @@
         <div class="today-chip" id="todayChip"></div>
       </div>
 
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab" data-period="day">Today</button>
+        <button class="period-tab" data-period="week">This Week</button>
+        <button class="period-tab active" data-period="month">This Month</button>
+        <button class="period-tab" data-period="year">This Year</button>
+        <button class="period-tab" data-period="all">All Time</button>
+      </div>
+
+      <div class="panel">
+        <h2 id="periodPanelTitle">This Month</h2>
+        <p class="desc">AP submitted, commission earned, deposits collected, and lead spend for the selected period.</p>
+        <div class="calc-strip" style="margin-top:0;grid-template-columns:repeat(4,1fr);">
+          <div class="calc-item"><div class="k">AP Submitted</div><div class="v" id="pmAP">$0</div></div>
+          <div class="calc-item"><div class="k">Applications</div><div class="v" id="pmCount">0</div></div>
+          <div class="calc-item"><div class="k">Average AP / Sale</div><div class="v" id="pmAvgAP">$0</div></div>
+          <div class="calc-item"><div class="k">Issued &amp; Paid</div><div class="v" id="pmIssued">0</div></div>
+          <div class="calc-item"><div class="k">Commission Earned</div><div class="v" id="pmComm">$0</div></div>
+          <div class="calc-item"><div class="k">Advance Paid</div><div class="v" id="pmAdvance">$0</div></div>
+          <div class="calc-item"><div class="k">Deposits Received</div><div class="v" id="pmDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Lead Spend</div><div class="v" id="pmLeadSpend">$0</div></div>
+          <div class="calc-item"><div class="k">Cost / Sale</div><div class="v" id="pmCostPerSale">$0</div></div>
+          <div class="calc-item"><div class="k">Cost / Lead</div><div class="v" id="pmCostPerLead">$0</div></div>
+          <div class="calc-item"><div class="k">ROI</div><div class="v" id="pmROI">—</div></div>
+        </div>
+      </div>
+
       <div class="tiles">
         <div class="tile accent-navy">
           <div class="tile-head">
-            <div class="label">Annualized Premium<br>Submitted</div>
+            <div class="label">Annualized Premium<br>Submitted (All-Time)</div>
             <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
           </div>
           <div class="value" id="tileSubmittedAP">$0</div>
@@ -539,16 +605,29 @@
           <div class="value" id="tileLapsed">$0</div>
           <div class="sub" id="tileLapsedCount">0 policies</div>
         </div>
-      </div>
-
-      <div class="panel">
-        <h2>This month</h2>
-        <p class="desc" id="monthLabel">—</p>
-        <div class="calc-strip" style="margin-top:0;">
-          <div class="calc-item"><div class="k">AP Submitted</div><div class="v" id="mtdAP">$0</div></div>
-          <div class="calc-item"><div class="k">Applications</div><div class="v" id="mtdCount">0</div></div>
-          <div class="calc-item"><div class="k">Total Commission Earned</div><div class="v" id="mtdComm">$0</div></div>
-          <div class="calc-item"><div class="k">Avg. Comp Rate</div><div class="v" id="mtdAvgComp">0%</div></div>
+        <div class="tile" style="--accent:var(--blue);--accent-soft:var(--blue-soft);">
+          <div class="tile-head">
+            <div class="label">Total Deposited<br>(All-Time)</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/></svg></div>
+          </div>
+          <div class="value" id="tileDepositsAll">$0</div>
+          <div class="sub" id="tileDepositsCount">0 deposits logged</div>
+        </div>
+        <div class="tile" style="--accent:var(--red);--accent-soft:var(--red-soft);">
+          <div class="tile-head">
+            <div class="label">Total Lead Spend<br>(All-Time)</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+          </div>
+          <div class="value" id="tileLeadSpendAll">$0</div>
+          <div class="sub" id="tileLeadSpendCount">0 leads purchased</div>
+        </div>
+        <div class="tile" style="--accent:var(--green);--accent-soft:var(--green-soft);">
+          <div class="tile-head">
+            <div class="label">Average AP<br>(All-Time)</div>
+            <div class="icon-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+          </div>
+          <div class="value" id="tileAvgAPAll">$0</div>
+          <div class="sub">Per submitted application</div>
         </div>
       </div>
 
@@ -582,15 +661,10 @@
             <label>Effective date</label>
             <input id="f_effectiveDate" type="date">
           </div>
-          <div class="field span-2">
-            <label>Carrier <span class="hint">type to search, or type a new name to add one</span></label>
+          <div class="field">
+            <label>Carrier <span class="hint">type to search, or add new</span></label>
             <input id="f_carrier_text" type="text" list="carrierDatalist" placeholder="Start typing a carrier...">
             <datalist id="carrierDatalist"></datalist>
-          </div>
-          <div class="field span-2">
-            <label>Product <span class="hint">optional — picks up that product's own rates</span></label>
-            <input id="f_product_text" type="text" list="productDatalist" placeholder="e.g. Term Life, Whole Life...">
-            <datalist id="productDatalist"></datalist>
           </div>
 
           <div class="field">
@@ -605,18 +679,18 @@
             <input id="f_premium" type="number" min="0" step="0.01" placeholder="120.00">
           </div>
           <div class="field">
-            <label>Comp rate (%) <span class="hint">auto-fills from carrier/product</span></label>
+            <label>Comp rate (%) <span class="hint">auto-fills from carrier</span></label>
             <input id="f_comp" type="number" min="0" max="200" step="0.1" placeholder="80">
           </div>
           <div class="field">
-            <label>Advance rate (%) <span class="hint">auto-fills from carrier/product</span></label>
+            <label>Advance rate (%) <span class="hint">auto-fills from carrier</span></label>
             <input id="f_advance" type="number" min="0" max="100" step="0.1" placeholder="75">
           </div>
+
           <div class="field">
             <label>Advance cap ($) <span class="hint">optional — max $ advanced</span></label>
             <input id="f_advanceCap" type="number" min="0" step="1" placeholder="No cap">
           </div>
-
           <div class="field">
             <label>Status</label>
             <select id="f_status">
@@ -631,9 +705,9 @@
             <input type="checkbox" id="f_backendReceived">
             <label style="text-transform:none;font-weight:500;font-size:13px;">Backend already received</label>
           </div>
-          <div class="field span-2">
+          <div class="field">
             <label>Notes <span class="hint">optional</span></label>
-            <input id="f_notes" type="text" placeholder="Face amount, product, referral, etc.">
+            <input id="f_notes" type="text" placeholder="Face amount, referral, etc.">
           </div>
         </div>
 
@@ -684,7 +758,6 @@
               <th>Effective</th>
               <th>Client</th>
               <th>Carrier</th>
-              <th>Product</th>
               <th>AP</th>
               <th>Comp %</th>
               <th>Advance %</th>
@@ -704,12 +777,188 @@
       </div>
     </section>
 
+    <!-- ============ CALENDAR ============ -->
+    <section id="tab-calendar" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Calendar</h1>
+          <p>Click a month to see its metrics.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="cal-year-nav">
+          <button class="yr-btn" id="calPrevYear">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="yr-label" id="calYearLabel">2026</div>
+          <button class="yr-btn" id="calNextYear">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="cal-month-grid" id="calMonthGrid"></div>
+      </div>
+
+      <div class="panel">
+        <h2 id="calDetailTitle">Month metrics</h2>
+        <p class="desc">AP, commission, deposits, and lead spend for the selected month.</p>
+        <div class="calc-strip" style="margin-top:0;grid-template-columns:repeat(4,1fr);">
+          <div class="calc-item"><div class="k">AP Submitted</div><div class="v" id="calAP">$0</div></div>
+          <div class="calc-item"><div class="k">Applications</div><div class="v" id="calCount">0</div></div>
+          <div class="calc-item"><div class="k">Average AP / Sale</div><div class="v" id="calAvgAP">$0</div></div>
+          <div class="calc-item"><div class="k">Issued &amp; Paid</div><div class="v" id="calIssued">0</div></div>
+          <div class="calc-item"><div class="k">Commission Earned</div><div class="v" id="calComm">$0</div></div>
+          <div class="calc-item"><div class="k">Deposits</div><div class="v" id="calDeposits">$0</div></div>
+          <div class="calc-item"><div class="k">Lead Spend</div><div class="v" id="calLeadSpend">$0</div></div>
+          <div class="calc-item"><div class="k">ROI</div><div class="v" id="calROI">—</div></div>
+        </div>
+        <div style="overflow-x:auto;margin-top:18px;">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Client</th><th>Carrier</th><th>AP</th><th>Status</th></tr>
+          </thead>
+          <tbody id="calSalesBody"></tbody>
+        </table>
+        </div>
+        <div id="calEmptyState" class="empty-state hidden">
+          <div class="big">🗓️</div>
+          <div>No sales logged for this month.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DEPOSITS ============ -->
+    <section id="tab-deposits" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Deposits</h1>
+          <p>Track the money that's actually hit your account.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log a deposit</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Date</label>
+            <input id="dep_date" type="date">
+          </div>
+          <div class="field">
+            <label>Amount ($)</label>
+            <input id="dep_amount" type="number" min="0" step="0.01" placeholder="450.00">
+          </div>
+          <div class="field span-2">
+            <label>Source <span class="hint">optional — e.g. client name, "Advance batch"</span></label>
+            <input id="dep_source" type="text" placeholder="Jane Smith advance">
+          </div>
+          <div class="field span-4">
+            <label>Notes <span class="hint">optional</span></label>
+            <input id="dep_notes" type="text" placeholder="Notes">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="addDepositBtn">Log deposit</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Deposit history</h2>
+        <div class="calc-strip" style="margin-top:0;">
+          <div class="calc-item"><div class="k">Total Deposited</div><div class="v" id="depTotalAll">$0</div></div>
+          <div class="calc-item"><div class="k">This Month</div><div class="v" id="depTotalMonth">$0</div></div>
+          <div class="calc-item"><div class="k">Deposits Logged</div><div class="v" id="depCountAll">0</div></div>
+        </div>
+        <div style="overflow-x:auto;margin-top:18px;">
+        <table>
+          <thead><tr><th>Date</th><th>Amount</th><th>Source</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="depositsTableBody"></tbody>
+        </table>
+        </div>
+        <div id="depositsEmptyState" class="empty-state hidden">
+          <div class="big">💰</div>
+          <div>No deposits logged yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LEAD SPEND ============ -->
+    <section id="tab-leadspend" class="tab-content hidden">
+      <div class="page-head">
+        <div>
+          <h1>Lead Spend</h1>
+          <p>Track what you spend on leads and see your cost per sale and ROI.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log lead spend</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Date</label>
+            <input id="ls_date" type="date">
+          </div>
+          <div class="field">
+            <label>Source <span class="hint">e.g. Facebook, vendor name</span></label>
+            <input id="ls_source" type="text" placeholder="Facebook Ads">
+          </div>
+          <div class="field">
+            <label>Amount spent ($)</label>
+            <input id="ls_amount" type="number" min="0" step="0.01" placeholder="250.00">
+          </div>
+          <div class="field">
+            <label>Leads purchased <span class="hint">optional</span></label>
+            <input id="ls_leads" type="number" min="0" step="1" placeholder="20">
+          </div>
+          <div class="field span-4">
+            <label>Notes <span class="hint">optional</span></label>
+            <input id="ls_notes" type="text" placeholder="Notes">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-gold" id="addLeadSpendBtn">Log spend</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Import lead spend from CSV</h2>
+        <p class="desc">Headers (case-insensitive): <code>Date</code>, <code>Source</code>, <code>Amount</code>, <code>Leads</code>, <code>Notes</code>. Only Date and Amount are required.</p>
+        <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:12px;">
+          <input type="file" id="importLeadSpendCsvFile" accept=".csv,text/csv">
+          <button class="btn btn-gold" id="importLeadSpendCsvBtn">Import CSV</button>
+          <button class="btn btn-outline" id="downloadLeadSpendTemplateBtn">Download template (.csv)</button>
+        </div>
+        <div id="leadSpendImportResult" style="font-size:12.5px;min-height:16px;"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Lead spend history</h2>
+        <div class="calc-strip" style="margin-top:0;">
+          <div class="calc-item"><div class="k">Total Spend</div><div class="v" id="lsTotalAll">$0</div></div>
+          <div class="calc-item"><div class="k">This Month</div><div class="v" id="lsTotalMonth">$0</div></div>
+          <div class="calc-item"><div class="k">Total Leads</div><div class="v" id="lsLeadsAll">0</div></div>
+          <div class="calc-item"><div class="k">Cost / Lead</div><div class="v" id="lsCostPerLead">$0</div></div>
+          <div class="calc-item"><div class="k">Cost / Sale (All-Time)</div><div class="v" id="lsCostPerSale">$0</div></div>
+          <div class="calc-item"><div class="k">ROI (All-Time)</div><div class="v" id="lsROIAll">—</div></div>
+        </div>
+        <div style="overflow-x:auto;margin-top:18px;">
+        <table>
+          <thead><tr><th>Date</th><th>Source</th><th>Amount</th><th>Leads</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="leadSpendTableBody"></tbody>
+        </table>
+        </div>
+        <div id="leadSpendEmptyState" class="empty-state hidden">
+          <div class="big">📣</div>
+          <div>No lead spend logged yet.</div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ CARRIERS ============ -->
     <section id="tab-carriers" class="tab-content hidden">
       <div class="page-head">
         <div>
           <h1>Carriers</h1>
-          <p>Set default comp and advance rates, then add specific products underneath — rates often differ by product.</p>
+          <p>Set default comp and advance rates for each carrier you write with.</p>
         </div>
       </div>
 
@@ -739,36 +988,6 @@
         </div>
         <div class="btn-row">
           <button class="btn btn-gold" id="addCarrierBtn">Add carrier</button>
-        </div>
-      </div>
-
-      <div class="panel">
-        <h2>Add a product</h2>
-        <p class="desc">Products inherit their carrier's rates unless you override them here — useful since term life, whole life, final expense, etc. often pay differently.</p>
-        <div class="form-grid">
-          <div class="field span-2">
-            <label>Carrier</label>
-            <select id="p_carrier"></select>
-          </div>
-          <div class="field span-2">
-            <label>Product name</label>
-            <input id="p_name" type="text" placeholder="e.g. 20-Year Term">
-          </div>
-          <div class="field">
-            <label>Comp rate (%) <span class="hint">optional override</span></label>
-            <input id="p_comp" type="number" min="0" max="200" step="0.1" placeholder="uses carrier default">
-          </div>
-          <div class="field">
-            <label>Advance rate (%) <span class="hint">optional override</span></label>
-            <input id="p_advance" type="number" min="0" max="100" step="0.1" placeholder="uses carrier default">
-          </div>
-          <div class="field">
-            <label>Advance cap ($) <span class="hint">optional override</span></label>
-            <input id="p_cap" type="number" min="0" step="1" placeholder="uses carrier default">
-          </div>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-gold" id="addProductBtn">Add product</button>
         </div>
       </div>
 
@@ -964,7 +1183,7 @@ function setUserDataBlob_(email, json) {
         <p class="desc">Download a backup, or a CSV to open in a spreadsheet.</p>
         <div class="btn-row" style="justify-content:flex-start;">
           <button class="btn btn-outline" id="exportJsonBtn">Download backup (.json)</button>
-          <button class="btn btn-outline" id="exportCsvBtn">Download CSV</button>
+          <button class="btn btn-outline" id="exportCsvBtn">Download sales CSV</button>
         </div>
       </div>
 
@@ -975,12 +1194,15 @@ function setUserDataBlob_(email, json) {
       </div>
 
       <div class="panel">
-        <h2>Import sales from CSV</h2>
+        <h2>Google Sheet import template for sales</h2>
         <p class="desc">
-          Adds sales without replacing anything. Each row is matched to an existing carrier and product by name
-          (case-insensitive) — if a match is found, that product's saved comp/advance/cap rates are used automatically.
-          Unmatched carriers or products are created for you.
+          Download this template, open it in Google Sheets (or Excel), paste in your sales, then upload it below to import.
+          Each row is matched to an existing carrier by name (case-insensitive) — if found, that carrier's saved comp/advance/cap
+          rates are used automatically unless you fill in your own values on the row. Unmatched carriers are created for you.
         </p>
+        <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:16px;">
+          <button class="btn btn-outline" id="downloadSalesTemplateBtn">Download template (.csv)</button>
+        </div>
         <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:12px;">
           <input type="file" id="importCsvFile" accept=".csv,text/csv">
           <button class="btn btn-gold" id="importCsvBtn">Import CSV</button>
@@ -990,11 +1212,11 @@ function setUserDataBlob_(email, json) {
           <summary style="cursor:pointer;color:var(--muted);font-size:12.5px;">Show accepted column headers</summary>
           <p class="desc" style="margin-top:8px;line-height:1.7;">
             Recognized headers (case-insensitive, order doesn't matter): <code>Date</code>, <code>Effective Date</code>,
-            <code>Client</code>, <code>Carrier</code>, <code>Product</code>, <code>Premium Type</code> (Monthly/Annual),
+            <code>Client</code>, <code>Carrier</code>, <code>Premium Type</code> (Monthly/Annual),
             <code>Premium</code>, <code>Comp %</code>, <code>Advance %</code>, <code>Advance Cap</code>, <code>Status</code>,
             <code>Backend Received</code> (Yes/No), <code>Notes</code>. Only <strong>Client</strong>, <strong>Carrier</strong>,
-            and <strong>Premium</strong> are required — everything else is optional and falls back to carrier/product defaults.
-            This matches the same format the "Download CSV" button above produces, so round-tripping just works.
+            and <strong>Premium</strong> are required — everything else is optional and falls back to carrier defaults.
+            This matches the same format the "Download sales CSV" button above produces, so round-tripping just works.
           </p>
         </details>
       </div>
@@ -1042,7 +1264,7 @@ function setUserDataBlob_(email, json) {
 
       <div class="panel">
         <h2 style="color:var(--red);">Danger zone</h2>
-        <p class="desc">This permanently deletes every carrier and sale on your account (or this device, if local-only). This can't be undone — download a backup first.</p>
+        <p class="desc">This permanently deletes every carrier, sale, deposit, and lead-spend entry on your account (or this device, if local-only). This can't be undone — download a backup first.</p>
         <div class="btn-row" style="justify-content:flex-start;">
           <button class="btn btn-outline" id="clearAllBtnSettings" style="border-color:var(--red) !important;color:var(--red);">Clear all data</button>
         </div>
@@ -1064,22 +1286,23 @@ function setUserDataBlob_(email, json) {
      ============================================================ */
   const SHEET_API_URL = "https://script.google.com/macros/s/AKfycby_LorHvJitDscwxv74POluOjgX2kUOeuCDpS1zR23wv7kF8lL1M8cZfgEEcJc2CWkN/exec";
 
-  const STORAGE_KEY = "ipt_data_v1";
+  const STORAGE_KEY = "ipt_data_v2";
   const AUTH_TOKEN_KEY = "ipt_auth_token_v1";
   const AUTH_EMAIL_KEY = "ipt_auth_email_v1";
   const PEPPER = "iptv1-static-pepper"; // fixed string mixed into every password hash for this app
   const PALETTE = ["#C89B3C","#1F8A5F","#2C5AA0","#8A57C4","#C1483A","#0E8388","#B5762A","#5B7F9E"];
   const cloudConfigured = !!SHEET_API_URL && SHEET_API_URL.indexOf("http") === 0;
+  const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   let lastCloudSyncOk = null;
   let pushPromise = null;
   let pushQueued = false;
   let currentAuth = { token: null, email: null };
+  let currentPeriod = "month";
+  let calYear = new Date().getFullYear();
+  let calSelectedMonth = new Date().getMonth();
 
-  let state = {
-    agentName:"",
-    carriers:[],
-    sales:[]
-  };
+  const EMPTY_STATE = {agentName:"", carriers:[], sales:[], deposits:[], leadSpend:[]};
+  let state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]});
 
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
   function fmtMoney(n){
@@ -1087,6 +1310,7 @@ function setUserDataBlob_(email, json) {
     return "$" + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   }
   function statusClass(s){ return "status-"+s.replace(/[^a-zA-Z]+/g,"-").replace(/^-|-$/g,""); }
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
 
   async function hashPassword(password, email){
     const enc = new TextEncoder().encode(password + ":" + email.trim().toLowerCase() + ":" + PEPPER);
@@ -1221,8 +1445,8 @@ function setUserDataBlob_(email, json) {
         if(json.error === "invalid_session"){ doLogout(true); }
         throw new Error(json.error || "load_failed");
       }
-      if(json.data && (json.data.carriers || json.data.sales || json.data.agentName)){
-        state = Object.assign({agentName:"",carriers:[],sales:[]}, json.data);
+      if(json.data && (json.data.carriers || json.data.sales || json.data.agentName || json.data.deposits || json.data.leadSpend)){
+        state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]}, json.data);
       }
       lastCloudSyncOk = true;
       updateCloudStatusUI("ok");
@@ -1288,14 +1512,12 @@ function setUserDataBlob_(email, json) {
         return;
       }
       if(!json.token || typeof json.token !== "string"){
-        // The server responded ok:true but didn't return a real token — almost always means
-        // the Apps Script deployed on SHEET_API_URL is still the old single-user version.
         errEl.textContent = "Server didn't return an account token. Your Apps Script backend needs to be updated to the multi-user version (Data tab → Cloud Sync → setup instructions) and redeployed as a New version.";
         return;
       }
       persistAuth(json.token, json.email || email);
       hideAuthOverlay();
-      state = {agentName:"", carriers:[], sales:[]};
+      state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]});
       await pushToCloud();
       renderAll(); recalc(); updateAcctStatusUI();
     }catch(e){
@@ -1342,7 +1564,7 @@ function setUserDataBlob_(email, json) {
   async function doLogout(silent){
     const token = currentAuth.token;
     clearPersistedAuth();
-    state = {agentName:"", carriers:[], sales:[]};
+    state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]});
     try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
     if(token){
       fetch(SHEET_API_URL, {
@@ -1363,6 +1585,8 @@ function setUserDataBlob_(email, json) {
         state = Object.assign(state, parsed);
       }
     }catch(e){ console.warn("Could not load saved data", e); }
+    if(!state.deposits) state.deposits = [];
+    if(!state.leadSpend) state.leadSpend = [];
   }
   function save(){
     let ok = true;
@@ -1395,6 +1619,9 @@ function setUserDataBlob_(email, json) {
       if(btn.dataset.tab==="carriers") renderCarriers();
       if(btn.dataset.tab==="logsale") populateCarrierSelects();
       if(btn.dataset.tab==="settings") renderSettingsTab();
+      if(btn.dataset.tab==="calendar"){ renderCalendar(); renderCalendarDetail(); }
+      if(btn.dataset.tab==="deposits") renderDeposits();
+      if(btn.dataset.tab==="leadspend") renderLeadSpend();
     });
   });
 
@@ -1402,67 +1629,84 @@ function setUserDataBlob_(email, json) {
   const agentInput = document.getElementById("agentName");
   agentInput.addEventListener("input", ()=>{ state.agentName = agentInput.value; save(); });
 
-  /* ---------------- Today chip / month label ---------------- */
+  /* ---------------- Today chip ---------------- */
   function setDateChips(){
     const today = new Date();
     document.getElementById("todayChip").textContent = today.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric', year:'numeric'});
-    document.getElementById("monthLabel").textContent = today.toLocaleDateString(undefined,{month:'long', year:'numeric'});
     document.getElementById("f_date").value = today.toISOString().slice(0,10);
+    document.getElementById("dep_date").value = today.toISOString().slice(0,10);
+    document.getElementById("ls_date").value = today.toISOString().slice(0,10);
   }
 
-  /* ---------------- Carriers & Products ---------------- */
+  /* ---------------- Date range / metrics helpers ---------------- */
+  function getPeriodRange(period, refDate){
+    const d = refDate ? new Date(refDate) : new Date();
+    let start, end;
+    if(period==="day"){
+      start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      end = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1);
+    } else if(period==="week"){
+      const day = d.getDay();
+      start = new Date(d.getFullYear(), d.getMonth(), d.getDate()-day);
+      end = new Date(start.getFullYear(), start.getMonth(), start.getDate()+7);
+    } else if(period==="month"){
+      start = new Date(d.getFullYear(), d.getMonth(), 1);
+      end = new Date(d.getFullYear(), d.getMonth()+1, 1);
+    } else if(period==="year"){
+      start = new Date(d.getFullYear(), 0, 1);
+      end = new Date(d.getFullYear()+1, 0, 1);
+    } else {
+      start = new Date(1970,0,1);
+      end = new Date(2999,0,1);
+    }
+    return {start, end};
+  }
+  function dateInRange(dateStr, start, end){
+    if(!dateStr) return false;
+    const d = new Date(dateStr+"T00:00:00");
+    return d>=start && d<end;
+  }
+  function computeMetrics(start, end){
+    const sales = state.sales.filter(s=>dateInRange(s.date, start, end) && s.status!=="Not Taken");
+    const issued = sales.filter(s=>s.status==="Issued & Paid");
+    const totalAP = sales.reduce((a,s)=>a+s.ap,0);
+    const count = sales.length;
+    const avgAP = count ? totalAP/count : 0;
+    const totalCommission = issued.reduce((a,s)=>a+s.commission,0);
+    const advancePaid = issued.reduce((a,s)=>a+s.advanceAmt,0);
+    const deposits = state.deposits.filter(d=>dateInRange(d.date,start,end)).reduce((a,d)=>a+(d.amount||0),0);
+    const spendEntries = state.leadSpend.filter(l=>dateInRange(l.date,start,end));
+    const leadSpend = spendEntries.reduce((a,l)=>a+(l.amount||0),0);
+    const leadsCount = spendEntries.reduce((a,l)=>a+(l.leads||0),0);
+    const costPerSale = count ? leadSpend/count : 0;
+    const costPerLead = leadsCount ? leadSpend/leadsCount : 0;
+    const roi = leadSpend>0 ? ((totalCommission-leadSpend)/leadSpend*100) : null;
+    return {totalAP, count, avgAP, totalCommission, advancePaid, deposits, leadSpend, leadsCount, costPerSale, costPerLead, roi, issuedCount: issued.length};
+  }
+  function fmtROI(roi){
+    if(roi===null || !isFinite(roi)) return "—";
+    return (roi>=0?"+":"") + roi.toFixed(0) + "%";
+  }
+
+  /* ---------------- Carriers ---------------- */
   function carrierByName(name){
     const n = (name||"").trim().toLowerCase();
     if(!n) return null;
     return state.carriers.find(c=>c.name.trim().toLowerCase()===n) || null;
   }
 
-  function findProduct(carrier, name){
-    if(!carrier || !name) return null;
-    const n = name.trim().toLowerCase();
-    if(!n) return null;
-    return (carrier.products||[]).find(p=>p.name.trim().toLowerCase()===n) || null;
-  }
-
-  function findOrCreateProduct(carrier, name, compVal, advVal, capVal){
-    if(!carrier || !name) return null;
-    if(!carrier.products) carrier.products = [];
-    let product = findProduct(carrier, name);
-    if(!product){
-      product = { id: uid(), name: name.trim(), comp: compVal, advance: advVal, cap: capVal||0 };
-      carrier.products.push(product);
-    }
-    return product;
-  }
-
   function populateCarrierSelects(){
     const dl = document.getElementById("carrierDatalist");
     const filt = document.getElementById("filterCarrier");
-    const pCarrierSel = document.getElementById("p_carrier");
     const prevFilt = filt.value;
-    const prevPCarrier = pCarrierSel.value;
     dl.innerHTML = "";
     filt.innerHTML = '<option value="">All carriers</option>';
-    pCarrierSel.innerHTML = state.carriers.length ? "" : '<option value="">Add a carrier first</option>';
     state.carriers.forEach(c=>{
       const o1 = document.createElement("option"); o1.value=c.name; dl.appendChild(o1);
       const o2 = document.createElement("option"); o2.value=c.id; o2.textContent=c.name; filt.appendChild(o2);
-      const o3 = document.createElement("option"); o3.value=c.id; o3.textContent=c.name; pCarrierSel.appendChild(o3);
     });
     if(state.carriers.some(c=>c.id===prevFilt)) filt.value = prevFilt;
-    if(state.carriers.some(c=>c.id===prevPCarrier)) pCarrierSel.value = prevPCarrier;
     onCarrierChange();
-  }
-
-  function populateProductDatalist(){
-    const dl = document.getElementById("productDatalist");
-    dl.innerHTML = "";
-    const carrier = carrierByName(document.getElementById("f_carrier_text").value);
-    if(carrier){
-      (carrier.products||[]).forEach(p=>{
-        const o = document.createElement("option"); o.value = p.name; dl.appendChild(o);
-      });
-    }
   }
 
   document.getElementById("f_carrier_text").addEventListener("input", onCarrierChange);
@@ -1473,21 +1717,6 @@ function setUserDataBlob_(email, json) {
       document.getElementById("f_comp").value = c.comp;
       document.getElementById("f_advance").value = c.advance;
       document.getElementById("f_advanceCap").value = c.cap ? c.cap : "";
-    }
-    populateProductDatalist();
-    onProductChange();
-  }
-
-  document.getElementById("f_product_text").addEventListener("input", onProductChange);
-  document.getElementById("f_product_text").addEventListener("change", onProductChange);
-  function onProductChange(){
-    const carrier = carrierByName(document.getElementById("f_carrier_text").value);
-    const productName = document.getElementById("f_product_text").value;
-    const product = findProduct(carrier, productName);
-    if(product){
-      document.getElementById("f_comp").value = product.comp;
-      document.getElementById("f_advance").value = product.advance;
-      document.getElementById("f_advanceCap").value = product.cap ? product.cap : "";
     }
     recalc();
   }
@@ -1501,7 +1730,7 @@ function setUserDataBlob_(email, json) {
     if(!name){ alert("Enter a carrier name."); return; }
     if(isNaN(comp) || isNaN(advance)){ alert("Enter comp and advance rates."); return; }
     state.carriers.push({
-      id:uid(), name, comp, advance, cap, months, products:[],
+      id:uid(), name, comp, advance, cap, months,
       color: PALETTE[state.carriers.length % PALETTE.length]
     });
     save();
@@ -1514,33 +1743,6 @@ function setUserDataBlob_(email, json) {
     populateCarrierSelects();
   });
 
-  document.getElementById("addProductBtn").addEventListener("click", ()=>{
-    const carrierId = document.getElementById("p_carrier").value;
-    const carrier = state.carriers.find(c=>c.id===carrierId);
-    const name = document.getElementById("p_name").value.trim();
-    const compRaw = document.getElementById("p_comp").value;
-    const advRaw = document.getElementById("p_advance").value;
-    const capRaw = document.getElementById("p_cap").value;
-    if(!carrier){ alert("Choose a carrier first (add one above if you haven't)."); return; }
-    if(!name){ alert("Enter a product name."); return; }
-    if(!carrier.products) carrier.products = [];
-    if(findProduct(carrier, name)){ alert("This carrier already has a product with that name."); return; }
-    carrier.products.push({
-      id: uid(),
-      name,
-      comp: compRaw !== "" ? parseFloat(compRaw)||0 : carrier.comp,
-      advance: advRaw !== "" ? parseFloat(advRaw)||0 : carrier.advance,
-      cap: capRaw !== "" ? parseFloat(capRaw)||0 : (carrier.cap||0)
-    });
-    save();
-    document.getElementById("p_name").value="";
-    document.getElementById("p_comp").value="";
-    document.getElementById("p_advance").value="";
-    document.getElementById("p_cap").value="";
-    renderCarriers();
-    populateProductDatalist();
-  });
-
   function renderCarriers(){
     const grid = document.getElementById("carrierGrid");
     const empty = document.getElementById("carrierEmptyState");
@@ -1548,25 +1750,9 @@ function setUserDataBlob_(email, json) {
     if(state.carriers.length===0){ empty.classList.remove("hidden"); return; }
     empty.classList.add("hidden");
     state.carriers.forEach(c=>{
-      if(!c.products) c.products = [];
       const count = state.sales.filter(s=>s.carrierId===c.id).length;
       const div = document.createElement("div");
       div.className = "carrier-card";
-      const productsHtml = c.products.length ? `
-        <div class="product-list">
-          ${c.products.map(p=>`
-            <div class="product-row">
-              <div>
-                <div class="pname">${escapeHtml(p.name)}</div>
-                <div class="prates">${p.comp}% comp · ${p.advance}% adv${p.cap?' · cap '+fmtMoney(p.cap).replace('.00',''):''}</div>
-              </div>
-              <button class="icon-btn del product-del" title="Delete product" data-cid="${c.id}" data-pid="${p.id}">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
-              </button>
-            </div>
-          `).join("")}
-        </div>
-      ` : `<div class="product-list"><div class="prates" style="text-align:center;padding:4px 0;">No products yet — uses carrier defaults</div></div>`;
       div.innerHTML = `
         <div class="top">
           <div class="name"><span class="dot" style="background:${c.color}"></span>${escapeHtml(c.name)}</div>
@@ -1581,26 +1767,15 @@ function setUserDataBlob_(email, json) {
           <div>Backend<span>${c.months||0} mo</span></div>
           <div>Sales<span>${count}</span></div>
         </div>
-        ${productsHtml}
       `;
       grid.appendChild(div);
     });
-    grid.querySelectorAll(".icon-btn.del:not(.product-del)").forEach(btn=>{
+    grid.querySelectorAll(".icon-btn.del").forEach(btn=>{
       btn.addEventListener("click", ()=>{
         const inUse = state.sales.some(s=>s.carrierId===btn.dataset.id);
         if(inUse && !confirm("This carrier has sales logged against it. Delete anyway? (Sales will keep their saved numbers.)")) return;
         state.carriers = state.carriers.filter(c=>c.id!==btn.dataset.id);
         save(); renderCarriers(); populateCarrierSelects();
-      });
-    });
-    grid.querySelectorAll(".product-del").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const carrier = state.carriers.find(c=>c.id===btn.dataset.cid);
-        if(!carrier) return;
-        const inUse = state.sales.some(s=>s.productId===btn.dataset.pid);
-        if(inUse && !confirm("This product has sales logged against it. Delete anyway? (Sales will keep their saved numbers.)")) return;
-        carrier.products = (carrier.products||[]).filter(p=>p.id!==btn.dataset.pid);
-        save(); renderCarriers(); populateProductDatalist();
       });
     });
   }
@@ -1651,7 +1826,6 @@ function setUserDataBlob_(email, json) {
   function clearForm(){
     document.getElementById("f_client").value="";
     document.getElementById("f_premium").value="";
-    document.getElementById("f_product_text").value="";
     document.getElementById("f_effectiveDate").value="";
     document.getElementById("f_status").value="Submitted";
     document.getElementById("f_backendReceived").checked=false;
@@ -1661,8 +1835,8 @@ function setUserDataBlob_(email, json) {
   }
 
   // ---- Draft autosave for the Log a Sale form (protects in-progress typing, not just saved sales) ----
-  const DRAFT_KEY = "ipt_draft_v1";
-  const draftFieldIds = ["f_client","f_date","f_effectiveDate","f_carrier_text","f_product_text","f_premType","f_premium","f_comp","f_advance","f_advanceCap","f_status","f_backendReceived","f_notes"];
+  const DRAFT_KEY = "ipt_draft_v2";
+  const draftFieldIds = ["f_client","f_date","f_effectiveDate","f_carrier_text","f_premType","f_premium","f_comp","f_advance","f_advanceCap","f_status","f_backendReceived","f_notes"];
   function saveDraft(){
     const draft = {};
     draftFieldIds.forEach(id=>{
@@ -1701,7 +1875,6 @@ function setUserDataBlob_(email, json) {
   document.getElementById("submitSaleBtn").addEventListener("click", ()=>{
     const client = document.getElementById("f_client").value.trim();
     const carrierName = document.getElementById("f_carrier_text").value.trim();
-    const productName = document.getElementById("f_product_text").value.trim();
     const date = document.getElementById("f_date").value;
     const effectiveDate = document.getElementById("f_effectiveDate").value;
     if(!client){ alert("Enter a client name."); return; }
@@ -1717,24 +1890,19 @@ function setUserDataBlob_(email, json) {
         advance: parseFloat(advEl.value)||0,
         cap: parseFloat(capEl.value)||0,
         months: 0,
-        products: [],
         color: PALETTE[state.carriers.length % PALETTE.length]
       };
       state.carriers.push(carrier);
     }
     const carrierId = carrier.id;
 
-    const product = productName ? findOrCreateProduct(carrier, productName, parseFloat(compEl.value)||0, parseFloat(advEl.value)||0, parseFloat(capEl.value)||0) : null;
-
     const {ap, commission, advanceAmt, backendAmt, capped} = currentCalc();
     state.sales.push({
       id: uid(),
-      date: date || new Date().toISOString().slice(0,10),
+      date: date || todayISO(),
       effectiveDate: effectiveDate || "",
       client,
       carrierId,
-      product: productName || "",
-      productId: product ? product.id : null,
       premType: premTypeEl.value,
       premium: parseFloat(premEl.value)||0,
       comp: parseFloat(compEl.value)||0,
@@ -1771,7 +1939,7 @@ function setUserDataBlob_(email, json) {
 
     let rows = state.sales.slice().sort((a,b)=> b.date.localeCompare(a.date));
     rows = rows.filter(s=>{
-      if(q && !s.client.toLowerCase().includes(q) && !(s.product||"").toLowerCase().includes(q)) return false;
+      if(q && !s.client.toLowerCase().includes(q)) return false;
       if(fCarrier && s.carrierId!==fCarrier) return false;
       if(fStatus && s.status!==fStatus) return false;
       return true;
@@ -1789,7 +1957,6 @@ function setUserDataBlob_(email, json) {
         <td class="num">${s.effectiveDate||'—'}</td>
         <td>${escapeHtml(s.client)}</td>
         <td><span class="carrier-tag"><span class="dot" style="background:${c?c.color:'#999'}"></span>${c?escapeHtml(c.name):'—'}</span></td>
-        <td>${s.product?escapeHtml(s.product):'<span style="color:var(--slate);">—</span>'}</td>
         <td class="num">${fmtMoney(s.ap)}</td>
         <td class="num">${s.comp}%</td>
         <td class="num">${s.advance}%</td>
@@ -1832,7 +1999,36 @@ function setUserDataBlob_(email, json) {
   }
 
   /* ---------------- Dashboard ---------------- */
+  document.querySelectorAll(".period-tab").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".period-tab").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      currentPeriod = btn.dataset.period;
+      renderDashboard();
+    });
+  });
+
+  function renderPeriodMetrics(){
+    const {start, end} = getPeriodRange(currentPeriod);
+    const m = computeMetrics(start, end);
+    const titles = {day:"Today", week:"This Week", month:"This Month", year:"This Year", all:"All Time"};
+    document.getElementById("periodPanelTitle").textContent = titles[currentPeriod] || "Period";
+    document.getElementById("pmAP").textContent = fmtMoney(m.totalAP);
+    document.getElementById("pmCount").textContent = m.count;
+    document.getElementById("pmAvgAP").textContent = fmtMoney(m.avgAP);
+    document.getElementById("pmIssued").textContent = m.issuedCount;
+    document.getElementById("pmComm").textContent = fmtMoney(m.totalCommission);
+    document.getElementById("pmAdvance").textContent = fmtMoney(m.advancePaid);
+    document.getElementById("pmDeposits").textContent = fmtMoney(m.deposits);
+    document.getElementById("pmLeadSpend").textContent = fmtMoney(m.leadSpend);
+    document.getElementById("pmCostPerSale").textContent = fmtMoney(m.costPerSale);
+    document.getElementById("pmCostPerLead").textContent = fmtMoney(m.costPerLead);
+    document.getElementById("pmROI").textContent = fmtROI(m.roi);
+  }
+
   function renderDashboard(){
+    renderPeriodMetrics();
+
     const sales = state.sales;
     const submitted = sales.filter(s=> s.status!=="Not Taken");
     const issued = sales.filter(s=> s.status==="Issued & Paid");
@@ -1856,17 +2052,16 @@ function setUserDataBlob_(email, json) {
     document.getElementById("tileLapsed").textContent = fmtMoney(lapsedAmt);
     document.getElementById("tileLapsedCount").textContent = lapsed.length + " polic" + (lapsed.length===1?"y":"ies");
 
-    // Month to date
-    const now = new Date();
-    const ym = now.toISOString().slice(0,7);
-    const mtd = submitted.filter(s=>s.date.slice(0,7)===ym);
-    const mtdAP = mtd.reduce((a,s)=>a+s.ap,0);
-    const mtdComm = mtd.filter(s=>s.status==="Issued & Paid").reduce((a,s)=>a+s.commission,0);
-    const avgComp = mtd.length ? (mtd.reduce((a,s)=>a+s.comp,0)/mtd.length) : 0;
-    document.getElementById("mtdAP").textContent = fmtMoney(mtdAP);
-    document.getElementById("mtdCount").textContent = mtd.length;
-    document.getElementById("mtdComm").textContent = fmtMoney(mtdComm);
-    document.getElementById("mtdAvgComp").textContent = avgComp.toFixed(1)+"%";
+    const depTotal = state.deposits.reduce((a,d)=>a+(d.amount||0),0);
+    document.getElementById("tileDepositsAll").textContent = fmtMoney(depTotal);
+    document.getElementById("tileDepositsCount").textContent = state.deposits.length + " deposit" + (state.deposits.length===1?"":"s") + " logged";
+
+    const lsTotal = state.leadSpend.reduce((a,l)=>a+(l.amount||0),0);
+    const lsLeads = state.leadSpend.reduce((a,l)=>a+(l.leads||0),0);
+    document.getElementById("tileLeadSpendAll").textContent = fmtMoney(lsTotal);
+    document.getElementById("tileLeadSpendCount").textContent = lsLeads + " leads purchased";
+
+    document.getElementById("tileAvgAPAll").textContent = fmtMoney(submitted.length ? totalAP/submitted.length : 0);
 
     // Recent
     const recent = sales.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
@@ -1888,23 +2083,220 @@ function setUserDataBlob_(email, json) {
     }
   }
 
+  /* ---------------- Calendar ---------------- */
+  document.getElementById("calPrevYear").addEventListener("click", ()=>{ calYear--; renderCalendar(); });
+  document.getElementById("calNextYear").addEventListener("click", ()=>{ calYear++; renderCalendar(); });
+
+  function renderCalendar(){
+    document.getElementById("calYearLabel").textContent = calYear;
+    const grid = document.getElementById("calMonthGrid");
+    grid.innerHTML = "";
+    for(let m=0; m<12; m++){
+      const start = new Date(calYear, m, 1);
+      const end = new Date(calYear, m+1, 1);
+      const sales = state.sales.filter(s=>dateInRange(s.date, start, end) && s.status!=="Not Taken");
+      const ap = sales.reduce((a,s)=>a+s.ap,0);
+      const div = document.createElement("div");
+      div.className = "cal-month" + (m===calSelectedMonth ? " active" : "");
+      div.innerHTML = `
+        <div class="cal-month-name">${MONTH_NAMES[m]}</div>
+        <div class="cal-month-count">${sales.length} sale${sales.length===1?"":"s"}</div>
+        <div class="cal-month-ap">${fmtMoney(ap)}</div>
+      `;
+      div.addEventListener("click", ()=>{
+        calSelectedMonth = m;
+        renderCalendar();
+        renderCalendarDetail();
+      });
+      grid.appendChild(div);
+    }
+  }
+
+  function renderCalendarDetail(){
+    const start = new Date(calYear, calSelectedMonth, 1);
+    const end = new Date(calYear, calSelectedMonth+1, 1);
+    const m = computeMetrics(start, end);
+    document.getElementById("calDetailTitle").textContent = MONTH_NAMES[calSelectedMonth] + " " + calYear;
+    document.getElementById("calAP").textContent = fmtMoney(m.totalAP);
+    document.getElementById("calCount").textContent = m.count;
+    document.getElementById("calAvgAP").textContent = fmtMoney(m.avgAP);
+    document.getElementById("calIssued").textContent = m.issuedCount;
+    document.getElementById("calComm").textContent = fmtMoney(m.totalCommission);
+    document.getElementById("calDeposits").textContent = fmtMoney(m.deposits);
+    document.getElementById("calLeadSpend").textContent = fmtMoney(m.leadSpend);
+    document.getElementById("calROI").textContent = fmtROI(m.roi);
+
+    const rows = state.sales.filter(s=>dateInRange(s.date,start,end)).sort((a,b)=>b.date.localeCompare(a.date));
+    const body = document.getElementById("calSalesBody");
+    const empty = document.getElementById("calEmptyState");
+    body.innerHTML = "";
+    if(rows.length===0){ empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+    rows.forEach(s=>{
+      const c = carrierById(s.carrierId);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="num">${s.date}</td>
+        <td>${escapeHtml(s.client)}</td>
+        <td><span class="carrier-tag"><span class="dot" style="background:${c?c.color:'#999'}"></span>${c?escapeHtml(c.name):'—'}</span></td>
+        <td class="num">${fmtMoney(s.ap)}</td>
+        <td><span class="status-pill ${statusClass(s.status)}">${s.status}</span></td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  /* ---------------- Deposits ---------------- */
+  document.getElementById("addDepositBtn").addEventListener("click", ()=>{
+    const date = document.getElementById("dep_date").value || todayISO();
+    const amount = parseFloat(document.getElementById("dep_amount").value);
+    const source = document.getElementById("dep_source").value.trim();
+    const notes = document.getElementById("dep_notes").value.trim();
+    if(isNaN(amount) || amount<=0){ alert("Enter a deposit amount."); return; }
+    state.deposits.push({id: uid(), date, amount, source, notes});
+    save();
+    document.getElementById("dep_amount").value = "";
+    document.getElementById("dep_source").value = "";
+    document.getElementById("dep_notes").value = "";
+    document.getElementById("dep_date").value = todayISO();
+    renderDeposits();
+    renderDashboard();
+  });
+
+  function renderDeposits(){
+    const all = state.deposits.slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const body = document.getElementById("depositsTableBody");
+    const empty = document.getElementById("depositsEmptyState");
+    body.innerHTML = "";
+    document.getElementById("depTotalAll").textContent = fmtMoney(state.deposits.reduce((a,d)=>a+(d.amount||0),0));
+    document.getElementById("depCountAll").textContent = state.deposits.length;
+    const {start, end} = getPeriodRange("month");
+    document.getElementById("depTotalMonth").textContent = fmtMoney(state.deposits.filter(d=>dateInRange(d.date,start,end)).reduce((a,d)=>a+(d.amount||0),0));
+
+    if(all.length===0){ empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+    all.forEach(d=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="num">${d.date}</td>
+        <td class="num">${fmtMoney(d.amount)}</td>
+        <td>${escapeHtml(d.source||"—")}</td>
+        <td>${escapeHtml(d.notes||"—")}</td>
+        <td class="row-actions"><button class="icon-btn del dep-del" data-id="${d.id}" title="Delete">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+        </button></td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll(".dep-del").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        if(!confirm("Delete this deposit?")) return;
+        state.deposits = state.deposits.filter(d=>d.id!==btn.dataset.id);
+        save(); renderDeposits(); renderDashboard();
+      });
+    });
+  }
+
+  /* ---------------- Lead Spend ---------------- */
+  document.getElementById("addLeadSpendBtn").addEventListener("click", ()=>{
+    const date = document.getElementById("ls_date").value || todayISO();
+    const source = document.getElementById("ls_source").value.trim();
+    const amount = parseFloat(document.getElementById("ls_amount").value);
+    const leads = parseInt(document.getElementById("ls_leads").value) || 0;
+    const notes = document.getElementById("ls_notes").value.trim();
+    if(isNaN(amount) || amount<=0){ alert("Enter an amount spent."); return; }
+    state.leadSpend.push({id: uid(), date, source, amount, leads, notes});
+    save();
+    document.getElementById("ls_source").value = "";
+    document.getElementById("ls_amount").value = "";
+    document.getElementById("ls_leads").value = "";
+    document.getElementById("ls_notes").value = "";
+    document.getElementById("ls_date").value = todayISO();
+    renderLeadSpend();
+    renderDashboard();
+  });
+
+  function renderLeadSpend(){
+    const all = state.leadSpend.slice().sort((a,b)=>b.date.localeCompare(a.date));
+    const body = document.getElementById("leadSpendTableBody");
+    const empty = document.getElementById("leadSpendEmptyState");
+    body.innerHTML = "";
+
+    const totalAll = state.leadSpend.reduce((a,l)=>a+(l.amount||0),0);
+    const leadsAll = state.leadSpend.reduce((a,l)=>a+(l.leads||0),0);
+    const {start, end} = getPeriodRange("month");
+    const totalMonth = state.leadSpend.filter(l=>dateInRange(l.date,start,end)).reduce((a,l)=>a+(l.amount||0),0);
+    const allTimeMetrics = computeMetrics(new Date(1970,0,1), new Date(2999,0,1));
+
+    document.getElementById("lsTotalAll").textContent = fmtMoney(totalAll);
+    document.getElementById("lsTotalMonth").textContent = fmtMoney(totalMonth);
+    document.getElementById("lsLeadsAll").textContent = leadsAll;
+    document.getElementById("lsCostPerLead").textContent = fmtMoney(leadsAll ? totalAll/leadsAll : 0);
+    document.getElementById("lsCostPerSale").textContent = fmtMoney(allTimeMetrics.count ? totalAll/allTimeMetrics.count : 0);
+    document.getElementById("lsROIAll").textContent = fmtROI(totalAll>0 ? ((allTimeMetrics.totalCommission-totalAll)/totalAll*100) : null);
+
+    if(all.length===0){ empty.classList.remove("hidden"); return; }
+    empty.classList.add("hidden");
+    all.forEach(l=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="num">${l.date}</td>
+        <td>${escapeHtml(l.source||"—")}</td>
+        <td class="num">${fmtMoney(l.amount)}</td>
+        <td class="num">${l.leads||0}</td>
+        <td>${escapeHtml(l.notes||"—")}</td>
+        <td class="row-actions"><button class="icon-btn del ls-del" data-id="${l.id}" title="Delete">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>
+        </button></td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll(".ls-del").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        if(!confirm("Delete this lead spend entry?")) return;
+        state.leadSpend = state.leadSpend.filter(l=>l.id!==btn.dataset.id);
+        save(); renderLeadSpend(); renderDashboard();
+      });
+    });
+  }
+
   /* ---------------- Export / Import ---------------- */
   function downloadBackupJson(){
     const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
-    downloadBlob(blob, "production-tracker-backup-"+new Date().toISOString().slice(0,10)+".json");
+    downloadBlob(blob, "production-tracker-backup-"+todayISO()+".json");
   }
   document.getElementById("exportJsonBtn").addEventListener("click", downloadBackupJson);
   document.getElementById("backupNowBtn").addEventListener("click", downloadBackupJson);
+
+  function csvCell(v){
+    return typeof v==="string" && (v.includes(",")||v.includes('"')||v.includes("\n")) ? '"'+v.replace(/"/g,'""')+'"' : v;
+  }
+
   document.getElementById("exportCsvBtn").addEventListener("click", ()=>{
-    const header = ["Date","Effective Date","Client","Carrier","Product","Premium Type","Premium","AP","Comp %","Advance %","Advance Cap","Commission","Advance $","Capped","Backend $","Backend Received","Status","Notes"];
+    const header = ["Date","Effective Date","Client","Carrier","Premium Type","Premium","AP","Comp %","Advance %","Advance Cap","Commission","Advance $","Capped","Backend $","Backend Received","Status","Notes"];
     const rows = state.sales.map(s=>{
       const c = carrierById(s.carrierId);
-      return [s.date, s.effectiveDate||"", s.client, c?c.name:"", s.product||"", s.premType, s.premium, s.ap.toFixed(2), s.comp, s.advance, s.advanceCap||0, s.commission.toFixed(2), s.advanceAmt.toFixed(2), s.capped?"Yes":"No", s.backendAmt.toFixed(2), s.backendReceived?"Yes":"No", s.status, s.notes||""]
-        .map(v=> typeof v==="string" && (v.includes(",")||v.includes('"')) ? '"'+v.replace(/"/g,'""')+'"' : v);
+      return [s.date, s.effectiveDate||"", s.client, c?c.name:"", s.premType, s.premium, s.ap.toFixed(2), s.comp, s.advance, s.advanceCap||0, s.commission.toFixed(2), s.advanceAmt.toFixed(2), s.capped?"Yes":"No", s.backendAmt.toFixed(2), s.backendReceived?"Yes":"No", s.status, s.notes||""]
+        .map(csvCell);
     });
     const csv = [header.join(","), ...rows.map(r=>r.join(","))].join("\n");
     downloadBlob(new Blob([csv],{type:"text/csv"}), "production-tracker-export.csv");
   });
+
+  document.getElementById("downloadSalesTemplateBtn").addEventListener("click", ()=>{
+    const header = ["Date","Effective Date","Client","Carrier","Premium Type","Premium","Comp %","Advance %","Advance Cap","Status","Backend Received","Notes"];
+    const example = ["2026-01-15","2026-02-01","Jane Smith","Mutual of Omaha","monthly","120","80","75","","Submitted","No","Term life, referral"];
+    const csv = [header.join(","), example.map(csvCell).join(",")].join("\n");
+    downloadBlob(new Blob([csv],{type:"text/csv"}), "sales-import-template.csv");
+  });
+
+  document.getElementById("downloadLeadSpendTemplateBtn").addEventListener("click", ()=>{
+    const header = ["Date","Source","Amount","Leads","Notes"];
+    const example = ["2026-01-15","Facebook Ads","250","20","January campaign"];
+    const csv = [header.join(","), example.map(csvCell).join(",")].join("\n");
+    downloadBlob(new Blob([csv],{type:"text/csv"}), "lead-spend-import-template.csv");
+  });
+
   function downloadBlob(blob, filename){
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1920,13 +2312,15 @@ function setUserDataBlob_(email, json) {
       try{
         const parsed = JSON.parse(reader.result);
         if(!confirm("This will replace your current data with the backup file. Continue?")) return;
-        state = Object.assign({agentName:"",carriers:[],sales:[]}, parsed);
+        state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]}, parsed);
         save();
         agentInput.value = state.agentName || "";
         populateCarrierSelects();
         renderCarriers();
         renderSalesTable();
         renderDashboard();
+        renderDeposits();
+        renderLeadSpend();
         alert("Backup restored.");
       }catch(err){
         alert("That file couldn't be read as a valid backup.");
@@ -1935,7 +2329,7 @@ function setUserDataBlob_(email, json) {
     reader.readAsText(file);
   });
 
-  // ---- CSV import for sales (matches existing carriers/products by name) ----
+  // ---- CSV parsing (shared by sales + lead spend import) ----
   function parseCSV(text){
     const rows = [];
     let row = [], field = "", inQuotes = false;
@@ -1964,7 +2358,6 @@ function setUserDataBlob_(email, json) {
     effectivedate:"effectiveDate", effdate:"effectiveDate",
     client:"client", clientname:"client", name:"client", insured:"client",
     carrier:"carrier", carriername:"carrier",
-    product:"product", productname:"product", plan:"product",
     premiumtype:"premiumType", premtype:"premiumType",
     premium:"premium", premiumamount:"premium", monthlypremium:"premium", amount:"premium",
     ap:"ap", annualpremium:"ap",
@@ -1995,7 +2388,7 @@ function setUserDataBlob_(email, json) {
         return;
       }
 
-      let imported = 0, newCarriers = 0, newProducts = 0, skipped = 0;
+      let imported = 0, newCarriers = 0, skipped = 0;
       for(let r=1;r<rows.length;r++){
         const raw = rows[r];
         if(raw.every(v=>!v || !v.trim())) continue;
@@ -2017,48 +2410,27 @@ function setUserDataBlob_(email, json) {
           carrier = {
             id: uid(), name: carrierName,
             comp: parseFloat(rec.comp)||0, advance: parseFloat(rec.advance)||0, cap: parseFloat(rec.advanceCap)||0,
-            months: 0, products: [],
+            months: 0,
             color: PALETTE[state.carriers.length % PALETTE.length]
           };
           state.carriers.push(carrier);
           newCarriers++;
         }
-        if(!carrier.products) carrier.products = [];
 
         let comp = carrier.comp, advance = carrier.advance, cap = carrier.cap || 0;
-        const productName = (rec.product||"").trim();
-        let product = null;
-        if(productName){
-          product = findProduct(carrier, productName);
-          if(!product){
-            product = {
-              id: uid(), name: productName,
-              comp: rec.comp ? (parseFloat(rec.comp)||carrier.comp) : carrier.comp,
-              advance: rec.advance ? (parseFloat(rec.advance)||carrier.advance) : carrier.advance,
-              cap: rec.advanceCap ? (parseFloat(rec.advanceCap)||carrier.cap||0) : (carrier.cap||0)
-            };
-            carrier.products.push(product);
-            newProducts++;
-          }
-          comp = product.comp; advance = product.advance; cap = product.cap||0;
-        } else {
-          // No product named — row-level comp/advance/cap override the carrier default, if given.
-          if(rec.comp) comp = parseFloat(rec.comp)||comp;
-          if(rec.advance) advance = parseFloat(rec.advance)||advance;
-          if(rec.advanceCap) cap = parseFloat(rec.advanceCap)||cap;
-        }
+        if(rec.comp) comp = parseFloat(rec.comp)||comp;
+        if(rec.advance) advance = parseFloat(rec.advance)||advance;
+        if(rec.advanceCap) cap = parseFloat(rec.advanceCap)||cap;
 
         const calc = computeCalc(premium, premType, comp, advance, cap);
         const status = VALID_STATUSES.find(s=>s.toLowerCase()===((rec.status||"").toLowerCase())) || "Submitted";
 
         state.sales.push({
           id: uid(),
-          date: rec.date || new Date().toISOString().slice(0,10),
+          date: rec.date || todayISO(),
           effectiveDate: rec.effectiveDate || "",
           client: clientName,
           carrierId: carrier.id,
-          product: productName,
-          productId: product ? product.id : null,
           premType, premium,
           comp, advance, advanceCap: cap,
           capped: calc.capped,
@@ -2079,7 +2451,6 @@ function setUserDataBlob_(email, json) {
       resultEl.style.color = imported > 0 ? "#3DD68C" : "var(--red)";
       resultEl.textContent = `Imported ${imported} sale${imported===1?"":"s"}.` +
         (newCarriers ? ` Created ${newCarriers} new carrier${newCarriers===1?"":"s"}.` : "") +
-        (newProducts ? ` Created ${newProducts} new product${newProducts===1?"":"s"}.` : "") +
         (skipped ? ` Skipped ${skipped} row${skipped===1?"":"s"} (missing client/carrier/premium).` : "");
       fileInput.value = "";
     }catch(err){
@@ -2089,13 +2460,63 @@ function setUserDataBlob_(email, json) {
     }
   });
 
+  const LEADSPEND_HEADER_MAP = {
+    date:"date", source:"source", vendor:"source",
+    amount:"amount", amountspent:"amount", spend:"amount", cost:"amount",
+    leads:"leads", leadcount:"leads", numleads:"leads",
+    notes:"notes", note:"notes"
+  };
+  document.getElementById("importLeadSpendCsvBtn").addEventListener("click", async ()=>{
+    const fileInput = document.getElementById("importLeadSpendCsvFile");
+    const resultEl = document.getElementById("leadSpendImportResult");
+    const file = fileInput.files[0];
+    if(!file){ resultEl.style.color = "var(--red)"; resultEl.textContent = "Choose a CSV file first."; return; }
+    resultEl.style.color = "var(--muted)";
+    resultEl.textContent = "Importing...";
+    try{
+      const text = await file.text();
+      const rows = parseCSV(text);
+      if(rows.length < 2){ resultEl.style.color = "var(--red)"; resultEl.textContent = "No data rows found in that file."; return; }
+      const headerKeys = rows[0].map(h => LEADSPEND_HEADER_MAP[normalizeCsvHeader(h)] || null);
+      if(!headerKeys.includes("date") || !headerKeys.includes("amount")){
+        resultEl.style.color = "var(--red)";
+        resultEl.textContent = "Missing required columns — need at least Date and Amount.";
+        return;
+      }
+      let imported = 0, skipped = 0;
+      for(let r=1;r<rows.length;r++){
+        const raw = rows[r];
+        if(raw.every(v=>!v || !v.trim())) continue;
+        const rec = {};
+        headerKeys.forEach((key, idx)=>{ if(key) rec[key] = (raw[idx]||"").trim(); });
+        const amount = parseFloat(rec.amount);
+        if(!rec.date || isNaN(amount)){ skipped++; continue; }
+        state.leadSpend.push({
+          id: uid(), date: rec.date, source: rec.source||"",
+          amount, leads: parseInt(rec.leads)||0, notes: rec.notes||""
+        });
+        imported++;
+      }
+      save();
+      renderLeadSpend();
+      renderDashboard();
+      resultEl.style.color = imported > 0 ? "#3DD68C" : "var(--red)";
+      resultEl.textContent = `Imported ${imported} entr${imported===1?"y":"ies"}.` + (skipped ? ` Skipped ${skipped} row${skipped===1?"":"s"} (missing date/amount).` : "");
+      fileInput.value = "";
+    }catch(err){
+      resultEl.style.color = "var(--red)";
+      resultEl.textContent = "Couldn't read that file as CSV.";
+      console.warn("Lead spend CSV import failed", err);
+    }
+  });
+
   document.getElementById("clearAllBtnSettings").addEventListener("click", ()=>{
-    if(!confirm("This permanently deletes all carriers and sales" + (cloudConfigured && currentAuth.token ? " for this account" : " on this device") + ". This can't be undone. Continue?")) return;
+    if(!confirm("This permanently deletes all carriers, sales, deposits, and lead spend" + (cloudConfigured && currentAuth.token ? " for this account" : " on this device") + ". This can't be undone. Continue?")) return;
     if(!confirm("Are you absolutely sure? Consider exporting a backup first.")) return;
-    state = {agentName: state.agentName, carriers:[], sales:[]};
+    state = Object.assign({}, EMPTY_STATE, {agentName: state.agentName, carriers:[], sales:[], deposits:[], leadSpend:[]});
     save();
     if(cloudConfigured && currentAuth.token) clearCloudData();
-    populateCarrierSelects(); renderCarriers(); renderSalesTable(); renderDashboard();
+    populateCarrierSelects(); renderCarriers(); renderSalesTable(); renderDashboard(); renderDeposits(); renderLeadSpend();
   });
 
   function escapeHtml(str){
@@ -2108,6 +2529,8 @@ function setUserDataBlob_(email, json) {
     renderCarriers();
     renderSalesTable();
     renderDashboard();
+    renderDeposits();
+    renderLeadSpend();
   }
 
   document.getElementById("syncNowBtn").addEventListener("click", async ()=>{
@@ -2171,7 +2594,6 @@ function setUserDataBlob_(email, json) {
     if(next.length < 8){ msg.textContent = "New password must be at least 8 characters."; return; }
     try{
       const curHash = await hashPassword(cur, currentAuth.email);
-      // verify current password by attempting a login call
       const loginRes = await fetch(SHEET_API_URL, {
         method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
         body: JSON.stringify({action:"login", email: currentAuth.email, hash: curHash})
@@ -2205,6 +2627,9 @@ function setUserDataBlob_(email, json) {
   renderCarriers();
   renderSalesTable();
   renderDashboard();
+  renderDeposits();
+  renderLeadSpend();
+  renderCalendar();
   recalc();
   restoreDraft();
 
