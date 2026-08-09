@@ -1012,7 +1012,7 @@
       <div class="page-head">
         <div>
           <h1>Carriers</h1>
-          <p>Set default comp and advance rates for each carrier you write with.</p>
+          <p>Set default comp and advance rates for each carrier you write with. Editing a carrier's rates offers to update every existing sale for that carrier too, recalculating commission automatically.</p>
         </div>
       </div>
 
@@ -1796,7 +1796,24 @@ function setUserDataBlob_(email, json) {
     if(editingCarrierId){
       const carrier = state.carriers.find(c=>c.id===editingCarrierId);
       if(carrier){
+        const ratesChanged = carrier.comp!==comp || carrier.advance!==advance || carrier.cap!==cap;
         carrier.name = name; carrier.comp = comp; carrier.advance = advance; carrier.cap = cap; carrier.months = months;
+
+        if(ratesChanged){
+          const linkedSales = state.sales.filter(s=>s.carrierId===carrier.id);
+          if(linkedSales.length){
+            const applyToAll = confirm(
+              `Update comp/advance/cap on ${linkedSales.length} existing sale${linkedSales.length===1?"":"s"} for ${name} to match these new rates, and recalculate commission/advance/backend? Click Cancel to only change the carrier's default for future sales.`
+            );
+            if(applyToAll){
+              linkedSales.forEach(s=>{
+                const calc = computeCalc(s.premium, s.premType, comp, advance, cap);
+                s.comp = comp; s.advance = advance; s.advanceCap = cap;
+                s.ap = calc.ap; s.commission = calc.commission; s.advanceAmt = calc.advanceAmt; s.backendAmt = calc.backendAmt; s.capped = calc.capped;
+              });
+            }
+          }
+        }
       }
       cancelCarrierEdit();
     } else {
@@ -1813,6 +1830,8 @@ function setUserDataBlob_(email, json) {
     save();
     renderCarriers();
     populateCarrierSelects();
+    renderSalesTable();
+    renderDashboard();
   });
 
   function startEditCarrier(id){
