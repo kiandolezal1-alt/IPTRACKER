@@ -2340,9 +2340,9 @@ function setUserDataBlob_(email, json) {
   }
 
   document.getElementById("downloadSalesTemplateBtn").addEventListener("click", ()=>{
-    const headers = ["Carrier","Effective Date","Annualized Premium"];
-    const example = ["Liberty Bankers","08/14/2026",1163.00];
-    downloadStyledXlsx("sales-import-template.xlsx", "Sales", headers, [example], [18,14,18]);
+    const headers = ["Submit Date","Carrier","Effective Date","Annual Premium"];
+    const example = ["08/08/2026","Liberty Bankers","08/14/2026",1163.00];
+    downloadStyledXlsx("sales-import-template.xlsx", "Sales", headers, [example], [14,18,14,15]);
   });
 
   document.getElementById("downloadLeadSpendTemplateBtn").addEventListener("click", ()=>{
