@@ -1344,6 +1344,7 @@ function setUserDataBlob_(email, json) {
   const SHEET_API_URL = "https://script.google.com/macros/s/AKfycby_LorHvJitDscwxv74POluOjgX2kUOeuCDpS1zR23wv7kF8lL1M8cZfgEEcJc2CWkN/exec";
 
   const STORAGE_KEY = "ipt_data_v2";
+  const LEGACY_STORAGE_KEYS = ["ipt_data_v1", "ipt_data"]; // older versions of this tracker used these keys
   const AUTH_TOKEN_KEY = "ipt_auth_token_v1";
   const AUTH_EMAIL_KEY = "ipt_auth_email_v1";
   const PEPPER = "iptv1-static-pepper"; // fixed string mixed into every password hash for this app
@@ -1634,9 +1635,20 @@ function setUserDataBlob_(email, json) {
   }
 
   function load(){
+    let migrated = false;
     try{
       let raw = localStorage.getItem(STORAGE_KEY);
       if(!raw) raw = sessionStorage.getItem(STORAGE_KEY); // fallback if localStorage was wiped mid-session
+
+      if(!raw){
+        // Nothing under the current key — check older versions of this tracker before
+        // assuming there's truly no data. An app upgrade should never look like data loss.
+        for(const legacyKey of LEGACY_STORAGE_KEYS){
+          const legacyRaw = localStorage.getItem(legacyKey) || sessionStorage.getItem(legacyKey);
+          if(legacyRaw){ raw = legacyRaw; migrated = true; break; }
+        }
+      }
+
       if(raw){
         const parsed = JSON.parse(raw);
         state = Object.assign(state, parsed);
@@ -1644,6 +1656,14 @@ function setUserDataBlob_(email, json) {
     }catch(e){ console.warn("Could not load saved data", e); }
     if(!state.deposits) state.deposits = [];
     if(!state.leadSpend) state.leadSpend = [];
+    if(!state.carriers) state.carriers = [];
+    if(!state.sales) state.sales = [];
+    if(migrated){
+      // Persist immediately under the current key so the recovered data survives from now on,
+      // and so this migration only has to run once.
+      save();
+      console.info("Recovered carriers/sales saved by an earlier version of this tracker.");
+    }
   }
   function save(){
     let ok = true;
