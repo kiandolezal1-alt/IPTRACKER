@@ -702,8 +702,8 @@
             <input id="f_comp" type="number" min="0" max="200" step="0.1" placeholder="80">
           </div>
           <div class="field">
-            <label>Advance rate (%) <span class="hint">auto-fills from carrier</span></label>
-            <input id="f_advance" type="number" min="0" max="100" step="0.1" placeholder="75">
+            <label>Advance rate (%) <span class="hint">fixed — always 75%</span></label>
+            <input id="f_advance" type="number" value="75" readonly disabled style="opacity:0.6;cursor:not-allowed;">
           </div>
 
           <div class="field">
@@ -1028,8 +1028,8 @@
             <input id="c_comp" type="number" min="0" max="200" step="0.1" placeholder="80">
           </div>
           <div class="field">
-            <label>Default advance rate (%)</label>
-            <input id="c_advance" type="number" min="0" max="100" step="0.1" placeholder="75">
+            <label>Advance rate (%) <span class="hint">fixed — always 75%</span></label>
+            <input id="c_advance" type="number" value="75" readonly disabled style="opacity:0.6;cursor:not-allowed;">
           </div>
           <div class="field">
             <label>Default advance cap ($) <span class="hint">optional</span></label>
@@ -1271,9 +1271,10 @@ function setUserDataBlob_(email, json) {
             Only <strong>Carrier</strong> and <strong>Annualized Premium</strong> (or <code>Premium</code> + <code>Premium Type</code>)
             are required — everything else is optional. Recognized headers (case-insensitive, order doesn't matter):
             <code>Carrier</code>, <code>Effective Date</code>, <code>Annualized Premium</code>, <code>Submit Date</code>,
-            <code>Client</code>, <code>Comp %</code>, <code>Advance %</code>, <code>Advance Cap</code>, <code>Status</code>,
+            <code>Client</code>, <code>Comp %</code>, <code>Advance Cap</code>, <code>Status</code>,
             <code>Backend Received</code> (Yes/No), <code>Referral Sale</code> (Yes/No), <code>Referrals Collected</code> (Yes/No),
             <code>Reset</code> (Yes/No), <code>Notes</code>. Anything you leave out just falls back to carrier defaults or "No".
+            Advance rate is fixed at 75% for every sale and carrier — it isn't imported or editable.
           </p>
         </details>
       </div>
@@ -1349,6 +1350,7 @@ function setUserDataBlob_(email, json) {
   const AUTH_EMAIL_KEY = "ipt_auth_email_v1";
   const PEPPER = "iptv1-static-pepper"; // fixed string mixed into every password hash for this app
   const PALETTE = ["#C89B3C","#1F8A5F","#2C5AA0","#8A57C4","#C1483A","#0E8388","#B5762A","#5B7F9E"];
+  const ADVANCE_RATE = 75; // advance rate is fixed at 75% everywhere in this tracker — not user-editable
   const cloudConfigured = !!SHEET_API_URL && SHEET_API_URL.indexOf("http") === 0;
   const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   let lastCloudSyncOk = null;
@@ -1505,6 +1507,7 @@ function setUserDataBlob_(email, json) {
       }
       if(json.data && (json.data.carriers || json.data.sales || json.data.agentName || json.data.deposits || json.data.leadSpend)){
         state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]}, json.data);
+        normalizeAdvanceRates();
       }
       lastCloudSyncOk = true;
       updateCloudStatusUI("ok");
@@ -1658,12 +1661,34 @@ function setUserDataBlob_(email, json) {
     if(!state.leadSpend) state.leadSpend = [];
     if(!state.carriers) state.carriers = [];
     if(!state.sales) state.sales = [];
+    const normalized = normalizeAdvanceRates();
     if(migrated){
       // Persist immediately under the current key so the recovered data survives from now on,
       // and so this migration only has to run once.
       save();
       console.info("Recovered carriers/sales saved by an earlier version of this tracker.");
+    } else if(normalized){
+      save();
     }
+  }
+  // Advance is fixed at 75% everywhere. This corrects any carriers/sales saved before that
+  // rule was locked in, so nothing existing keeps a stale, different advance rate.
+  function normalizeAdvanceRates(){
+    let changed = false;
+    state.carriers.forEach(c=>{
+      if(c.advance !== ADVANCE_RATE){ c.advance = ADVANCE_RATE; changed = true; }
+    });
+    state.sales.forEach(s=>{
+      if(s.advance !== ADVANCE_RATE){
+        const calc = computeCalc(s.premium, s.premType, s.comp, ADVANCE_RATE, s.advanceCap||0);
+        s.advance = ADVANCE_RATE;
+        s.advanceAmt = calc.advanceAmt;
+        s.backendAmt = calc.backendAmt;
+        s.capped = calc.capped;
+        changed = true;
+      }
+    });
+    return changed;
   }
   function save(){
     let ok = true;
@@ -1797,7 +1822,7 @@ function setUserDataBlob_(email, json) {
     const c = carrierByName(document.getElementById("f_carrier_text").value);
     if(c && !editingSaleId){
       document.getElementById("f_comp").value = c.comp;
-      document.getElementById("f_advance").value = c.advance;
+      document.getElementById("f_advance").value = ADVANCE_RATE;
       document.getElementById("f_advanceCap").value = c.cap ? c.cap : "";
     }
     recalc();
@@ -1807,11 +1832,11 @@ function setUserDataBlob_(email, json) {
   document.getElementById("addCarrierBtn").addEventListener("click", ()=>{
     const name = document.getElementById("c_name").value.trim();
     const comp = parseFloat(document.getElementById("c_comp").value);
-    const advance = parseFloat(document.getElementById("c_advance").value);
+    const advance = ADVANCE_RATE;
     const cap = parseFloat(document.getElementById("c_cap").value) || 0;
     const months = parseFloat(document.getElementById("c_months").value) || 0;
     if(!name){ alert("Enter a carrier name."); return; }
-    if(isNaN(comp) || isNaN(advance)){ alert("Enter comp and advance rates."); return; }
+    if(isNaN(comp)){ alert("Enter a comp rate."); return; }
 
     if(editingCarrierId){
       const carrier = state.carriers.find(c=>c.id===editingCarrierId);
@@ -1843,7 +1868,7 @@ function setUserDataBlob_(email, json) {
       });
       document.getElementById("c_name").value="";
       document.getElementById("c_comp").value="";
-      document.getElementById("c_advance").value="";
+      document.getElementById("c_advance").value=ADVANCE_RATE;
       document.getElementById("c_cap").value="";
       document.getElementById("c_months").value="";
     }
@@ -1860,7 +1885,7 @@ function setUserDataBlob_(email, json) {
     editingCarrierId = id;
     document.getElementById("c_name").value = carrier.name;
     document.getElementById("c_comp").value = carrier.comp;
-    document.getElementById("c_advance").value = carrier.advance;
+    document.getElementById("c_advance").value = ADVANCE_RATE;
     document.getElementById("c_cap").value = carrier.cap || "";
     document.getElementById("c_months").value = carrier.months || "";
     document.getElementById("carrierFormTitle").textContent = "Edit carrier";
@@ -1872,7 +1897,7 @@ function setUserDataBlob_(email, json) {
     editingCarrierId = null;
     document.getElementById("c_name").value="";
     document.getElementById("c_comp").value="";
-    document.getElementById("c_advance").value="";
+    document.getElementById("c_advance").value=ADVANCE_RATE;
     document.getElementById("c_cap").value="";
     document.getElementById("c_months").value="";
     document.getElementById("carrierFormTitle").textContent = "Add a carrier";
@@ -1937,6 +1962,7 @@ function setUserDataBlob_(email, json) {
   premTypeEl.addEventListener("change", recalc);
 
   function computeCalc(premium, premType, comp, adv, cap){
+    adv = ADVANCE_RATE; // advance is always 75%, regardless of what's passed in
     const isMonthly = premType !== "annual";
     const ap = isMonthly ? premium*12 : premium;
     const monthlyPremium = isMonthly ? premium : premium/12;
@@ -1954,7 +1980,7 @@ function setUserDataBlob_(email, json) {
   function currentCalc(){
     const premium = parseFloat(premEl.value) || 0;
     const comp = parseFloat(compEl.value) || 0;
-    const adv = parseFloat(advEl.value) || 0;
+    const adv = ADVANCE_RATE;
     const cap = parseFloat(capEl.value) || 0;
     return computeCalc(premium, premTypeEl.value, comp, adv, cap);
   }
@@ -2040,7 +2066,7 @@ function setUserDataBlob_(email, json) {
         id: uid(),
         name: carrierName,
         comp: parseFloat(compEl.value)||0,
-        advance: parseFloat(advEl.value)||0,
+        advance: ADVANCE_RATE,
         cap: parseFloat(capEl.value)||0,
         months: 0,
         color: PALETTE[state.carriers.length % PALETTE.length]
@@ -2058,7 +2084,7 @@ function setUserDataBlob_(email, json) {
       premType: premTypeEl.value,
       premium: parseFloat(premEl.value)||0,
       comp: parseFloat(compEl.value)||0,
-      advance: parseFloat(advEl.value)||0,
+      advance: ADVANCE_RATE,
       advanceCap: parseFloat(capEl.value)||0,
       capped,
       ap, commission, advanceAmt, backendAmt,
@@ -2195,7 +2221,7 @@ function setUserDataBlob_(email, json) {
     document.getElementById("f_premType").value = sale.premType || "monthly";
     document.getElementById("f_premium").value = sale.premium || "";
     document.getElementById("f_comp").value = sale.comp || "";
-    document.getElementById("f_advance").value = sale.advance || "";
+    document.getElementById("f_advance").value = ADVANCE_RATE;
     document.getElementById("f_advanceCap").value = sale.advanceCap || "";
     document.getElementById("f_status").value = sale.status || "Submitted";
     document.getElementById("f_backendReceived").checked = !!sale.backendReceived;
@@ -2217,7 +2243,7 @@ function setUserDataBlob_(email, json) {
     document.getElementById("cancelSaleEditBtn").classList.add("hidden");
     document.getElementById("f_carrier_text").value = "";
     document.getElementById("f_comp").value = "";
-    document.getElementById("f_advance").value = "";
+    document.getElementById("f_advance").value = ADVANCE_RATE;
     document.getElementById("f_advanceCap").value = "";
     clearForm();
     clearDraft();
@@ -2578,6 +2604,7 @@ function setUserDataBlob_(email, json) {
         const parsed = JSON.parse(reader.result);
         if(!confirm("This will replace your current data with the backup file. Continue?")) return;
         state = Object.assign({}, EMPTY_STATE, {carriers:[], sales:[], deposits:[], leadSpend:[]}, parsed);
+        normalizeAdvanceRates();
         save();
         agentInput.value = state.agentName || "";
         populateCarrierSelects();
@@ -2677,7 +2704,7 @@ function setUserDataBlob_(email, json) {
         if(!carrier){
           carrier = {
             id: uid(), name: carrierName,
-            comp: parseFloat(rec.comp)||0, advance: parseFloat(rec.advance)||0, cap: parseFloat(rec.advanceCap)||0,
+            comp: parseFloat(rec.comp)||0, advance: ADVANCE_RATE, cap: parseFloat(rec.advanceCap)||0,
             months: 0,
             color: PALETTE[state.carriers.length % PALETTE.length]
           };
@@ -2685,9 +2712,8 @@ function setUserDataBlob_(email, json) {
           newCarriers++;
         }
 
-        let comp = carrier.comp, advance = carrier.advance, cap = carrier.cap || 0;
+        let comp = carrier.comp, advance = ADVANCE_RATE, cap = carrier.cap || 0;
         if(rec.comp) comp = parseFloat(rec.comp)||comp;
-        if(rec.advance) advance = parseFloat(rec.advance)||advance;
         if(rec.advanceCap) cap = parseFloat(rec.advanceCap)||cap;
 
         const calc = computeCalc(premium, premType, comp, advance, cap);
