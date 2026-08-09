@@ -1221,10 +1221,10 @@ function setUserDataBlob_(email, json) {
       <div class="panel">
         <h2>Google Sheet import template for sales</h2>
         <p class="desc">
-          Download this template as an Excel file, open it in Google Sheets or Excel, paste in your sales, download/export it
-          back as .xlsx or .csv, then upload it below to import. Each row is matched to an existing carrier by name
-          (case-insensitive) — if found, that carrier's saved comp/advance/cap rates are used automatically. Unmatched
-          carriers are created for you.
+          Download this template as an Excel file, open it in Google Sheets or Excel, and paste in Carrier, Effective Date,
+          and Annualized Premium — nothing else is required. Download/export it back as .csv, then upload it below to import.
+          Each row is matched to an existing carrier by name (case-insensitive) — if found, that carrier's saved comp/advance/cap
+          rates are used automatically. Unmatched carriers are created for you.
         </p>
         <div class="btn-row" style="justify-content:flex-start;margin-top:0;margin-bottom:16px;">
           <button class="btn btn-outline" id="downloadSalesTemplateBtn">Download template (.xlsx)</button>
@@ -1238,12 +1238,12 @@ function setUserDataBlob_(email, json) {
         <details style="margin-top:12px;">
           <summary style="cursor:pointer;color:var(--muted);font-size:12.5px;">Show accepted column headers</summary>
           <p class="desc" style="margin-top:8px;line-height:1.7;">
-            Recognized headers (case-insensitive, order doesn't matter): <code>Carrier</code>, <code>Effective Date</code>,
-            <code>Annualized Premium</code> (or <code>Premium</code> + <code>Premium Type</code>), <code>Referral Sale</code> (Yes/No),
-            <code>Referrals Collected</code> (Yes/No), <code>Reset</code> (Yes/No), <code>Submit Date</code>, plus optional
+            Only <strong>Carrier</strong> and <strong>Annualized Premium</strong> (or <code>Premium</code> + <code>Premium Type</code>)
+            are required — everything else is optional. Recognized headers (case-insensitive, order doesn't matter):
+            <code>Carrier</code>, <code>Effective Date</code>, <code>Annualized Premium</code>, <code>Submit Date</code>,
             <code>Client</code>, <code>Comp %</code>, <code>Advance %</code>, <code>Advance Cap</code>, <code>Status</code>,
-            <code>Backend Received</code> (Yes/No), <code>Notes</code>. Only <strong>Carrier</strong> and a premium amount are
-            required — everything else is optional and falls back to carrier defaults.
+            <code>Backend Received</code> (Yes/No), <code>Referral Sale</code> (Yes/No), <code>Referrals Collected</code> (Yes/No),
+            <code>Reset</code> (Yes/No), <code>Notes</code>. Anything you leave out just falls back to carrier defaults or "No".
           </p>
         </details>
       </div>
@@ -2340,9 +2340,9 @@ function setUserDataBlob_(email, json) {
   }
 
   document.getElementById("downloadSalesTemplateBtn").addEventListener("click", ()=>{
-    const headers = ["Carrier","Effective Date","Annualized Premium","Referral Sale","Referrals Collected","Reset","Submit Date"];
-    const example = ["Liberty Bankers","08/14/2026",1163.00,"No","No","No","08/08/2026"];
-    downloadStyledXlsx("sales-import-template.xlsx", "Sales", headers, [example], [18,14,18,13,17,9,13]);
+    const headers = ["Carrier","Effective Date","Annualized Premium"];
+    const example = ["Liberty Bankers","08/14/2026",1163.00];
+    downloadStyledXlsx("sales-import-template.xlsx", "Sales", headers, [example], [18,14,18]);
   });
 
   document.getElementById("downloadLeadSpendTemplateBtn").addEventListener("click", ()=>{
