@@ -328,6 +328,7 @@
   .status-Pending{background:var(--amber-soft);color:var(--amber);}
   .status-Issued-Paid{background:var(--green-soft);color:var(--green);}
   .status-Not-Taken{background:#22232B;color:var(--slate);}
+  .status-Declined{background:var(--red-soft);color:var(--red);}
   .status-Lapsed-Chargeback{background:var(--red-soft);color:var(--red);}
   .row-actions{display:flex;gap:6px;}
   .icon-btn{
@@ -717,6 +718,7 @@
               <option>Pending</option>
               <option>Issued & Paid</option>
               <option>Not Taken</option>
+              <option>Declined</option>
               <option>Lapsed / Chargeback</option>
             </select>
           </div>
@@ -786,6 +788,7 @@
               <option>Pending</option>
               <option>Issued & Paid</option>
               <option>Not Taken</option>
+              <option>Declined</option>
               <option>Lapsed / Chargeback</option>
             </select>
           </div>
@@ -1808,7 +1811,7 @@ function setUserDataBlob_(email, json) {
     return d>=start && d<end;
   }
   function computeMetrics(start, end){
-    const sales = state.sales.filter(s=>dateInRange(s.date, start, end) && s.status!=="Not Taken");
+    const sales = state.sales.filter(s=>dateInRange(s.date, start, end));
     const issued = sales.filter(s=>s.status==="Issued & Paid");
     const totalAP = sales.reduce((a,s)=>a+s.ap,0);
     const count = sales.length;
@@ -2201,7 +2204,7 @@ function setUserDataBlob_(email, json) {
         <td>${s.referralsCollected==="Yes"?"Yes":"No"}</td>
         <td>${s.reset==="Yes"?"Yes":"No"}</td>
         <td><select class="status-select" data-id="${s.id}" style="width:auto;padding:4px 8px;font-size:11px;">
-              ${["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"].map(opt=>`<option ${opt===s.status?'selected':''}>${opt}</option>`).join("")}
+              ${["Submitted","Pending","Issued & Paid","Not Taken","Declined","Lapsed / Chargeback"].map(opt=>`<option ${opt===s.status?'selected':''}>${opt}</option>`).join("")}
             </select></td>
         <td class="row-actions">
           <button class="icon-btn sale-edit" data-id="${s.id}" title="Edit">
@@ -2330,7 +2333,7 @@ function setUserDataBlob_(email, json) {
     renderPeriodMetrics();
 
     const sales = state.sales;
-    const submitted = sales.filter(s=> s.status!=="Not Taken");
+    const submitted = sales; // every logged sale counts as submitted AP, regardless of outcome
     const issued = sales.filter(s=> s.status==="Issued & Paid");
     const lapsed = sales.filter(s=> s.status==="Lapsed / Chargeback");
 
@@ -2397,7 +2400,7 @@ function setUserDataBlob_(email, json) {
     for(let m=0; m<12; m++){
       const start = new Date(calYear, m, 1);
       const end = new Date(calYear, m+1, 1);
-      const sales = state.sales.filter(s=>dateInRange(s.date, start, end) && s.status!=="Not Taken");
+      const sales = state.sales.filter(s=>dateInRange(s.date, start, end));
       const ap = sales.reduce((a,s)=>a+s.ap,0);
       const div = document.createElement("div");
       div.className = "cal-month" + (m===calSelectedMonth ? " active" : "");
@@ -2702,7 +2705,7 @@ function setUserDataBlob_(email, json) {
     reset:"reset",
     notes:"notes", note:"notes"
   };
-  const VALID_STATUSES = ["Submitted","Pending","Issued & Paid","Not Taken","Lapsed / Chargeback"];
+  const VALID_STATUSES = ["Submitted","Pending","Issued & Paid","Not Taken","Declined","Lapsed / Chargeback"];
 
   document.getElementById("importCsvBtn").addEventListener("click", async ()=>{
     const fileInput = document.getElementById("importCsvFile");
