@@ -1102,11 +1102,12 @@
         <p class="desc">
           If sales were imported without a comp rate (showing 0% or a rate that doesn't match the carrier anymore),
           use this to bring every sale's comp %, advance %, and cap in line with what's currently set on its carrier —
-          and recalculate commission, advance $, backend $, and Expected Deposits to match. This checks every sale,
-          not just ones tied to a carrier you just edited.
+          and recalculate commission, advance $, backend $, and Expected Deposits to match. This first merges any
+          carriers that share the exact same name (a common side effect of CSV imports creating duplicates), then
+          syncs every sale to its carrier's current rate — not just ones tied to a carrier you just edited.
         </p>
         <div class="btn-row" style="justify-content:flex-start;">
-          <button class="btn btn-gold" id="syncAllSalesBtn">Sync all sales now</button>
+          <button class="btn btn-gold" id="syncAllSalesBtn">Merge duplicates &amp; sync all sales now</button>
         </div>
         <div id="syncAllSalesResult" style="font-size:12.5px;min-height:16px;margin-top:10px;"></div>
       </div>
@@ -1978,8 +1979,42 @@ function setUserDataBlob_(email, json) {
   document.getElementById("cascadeApplyBtn").addEventListener("click", ()=> finalizeCarrierSave(true));
   document.getElementById("cascadeSkipBtn").addEventListener("click", ()=> finalizeCarrierSave(false));
 
+  // Carriers created at different times (e.g. multiple CSV imports) can end up as separate
+  // records that share the exact same name. Merge them into one canonical carrier so editing
+  // or syncing rates actually reaches every sale, not just the ones on whichever duplicate
+  // happens to be shown.
+  function mergeDuplicateCarriers(){
+    const groups = {};
+    state.carriers.forEach(c=>{
+      const key = c.name.trim().toLowerCase();
+      if(!groups[key]) groups[key] = [];
+      groups[key].push(c);
+    });
+    let mergedGroups = 0, salesReassigned = 0, carriersRemoved = 0;
+    const survivors = [];
+    Object.values(groups).forEach(group=>{
+      if(group.length === 1){ survivors.push(group[0]); return; }
+      // Prefer the duplicate with the highest comp rate as canonical — a 0% entry is almost
+      // always the accidental one from an import that lacked a comp column.
+      const canonical = group.slice().sort((a,b)=> (b.comp||0) - (a.comp||0))[0];
+      const duplicateIds = group.filter(c=>c.id!==canonical.id).map(c=>c.id);
+      state.sales.forEach(s=>{
+        if(duplicateIds.includes(s.carrierId)){
+          s.carrierId = canonical.id;
+          salesReassigned++;
+        }
+      });
+      survivors.push(canonical);
+      mergedGroups++;
+      carriersRemoved += duplicateIds.length;
+    });
+    state.carriers = survivors;
+    return {mergedGroups, salesReassigned, carriersRemoved};
+  }
+
   document.getElementById("syncAllSalesBtn").addEventListener("click", ()=>{
     const resultEl = document.getElementById("syncAllSalesResult");
+    const {mergedGroups, salesReassigned, carriersRemoved} = mergeDuplicateCarriers();
     let updated = 0, skippedNoCarrier = 0, alreadyMatched = 0;
     state.sales.forEach(s=>{
       const carrier = carrierById(s.carrierId);
@@ -1995,11 +2030,14 @@ function setUserDataBlob_(email, json) {
       updated++;
     });
     save();
+    populateCarrierSelects();
     renderSalesTable();
     renderCarriers();
     renderDashboard();
-    resultEl.style.color = updated > 0 ? "#3DD68C" : "var(--muted)";
-    resultEl.textContent = `Updated ${updated} sale${updated===1?"":"s"} to match their carrier's current rates.` +
+    resultEl.style.color = (updated > 0 || mergedGroups > 0) ? "#3DD68C" : "var(--muted)";
+    resultEl.textContent =
+      (mergedGroups ? `Merged ${carriersRemoved} duplicate carrier${carriersRemoved===1?"":"s"} into ${mergedGroups} existing entr${mergedGroups===1?"y":"ies"}, reassigning ${salesReassigned} sale${salesReassigned===1?"":"s"}. ` : "") +
+      `Updated ${updated} sale${updated===1?"":"s"} to match their carrier's current rates.` +
       (alreadyMatched ? ` ${alreadyMatched} already matched.` : "") +
       (skippedNoCarrier ? ` ${skippedNoCarrier} skipped (no matching carrier found).` : "");
   });
